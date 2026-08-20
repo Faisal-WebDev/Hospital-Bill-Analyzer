@@ -1,7 +1,6 @@
 /* =========================================================
    HOSPITAL BILL ANALYZER
-   Complete JavaScript
-   HTML + CSS + JavaScript only
+   COMPLETE SCRIPT.JS
 ========================================================= */
 
 /* =========================================================
@@ -15,6 +14,7 @@ function getBills() {
         return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     } catch (error) {
         console.error("Could not read saved bills:", error);
+
         return [];
     }
 }
@@ -44,7 +44,13 @@ let currentBill = {
 };
 
 /* =========================================================
-   3. DOM ELEMENTS
+   3. ITEM EDIT STATE
+========================================================= */
+
+let editingItemIndex = null;
+
+/* =========================================================
+   4. DOM ELEMENTS
 ========================================================= */
 
 /* ---------- Bill Information ---------- */
@@ -160,7 +166,7 @@ const statusDot = document.querySelector(".status-dot");
 const toast = document.getElementById("toast");
 
 /* =========================================================
-   4. BASIC HELPER FUNCTIONS
+   5. HELPER FUNCTIONS
 ========================================================= */
 
 function formatMoney(amount) {
@@ -229,16 +235,35 @@ function showToast(message) {
 }
 
 function getCurrentBillTotal() {
+    if (!currentBill || !Array.isArray(currentBill.items)) {
+        return 0;
+    }
+
     return currentBill.items.reduce(function (total, item) {
         return total + Number(item.total || 0);
     }, 0);
 }
 
 /* =========================================================
-   5. CREATE NEW BILL
+   6. CREATE NEW BILL
 ========================================================= */
+
+/*
+    IMPORTANT:
+
+    This is the ONLY function that creates
+    a NEW bill ID.
+
+    It does NOT immediately save an empty
+    bill into history.
+
+    The bill enters history when the user
+    clicks "Save Bill Info".
+*/
+
 function createNewBill() {
     const id = Date.now();
+
     const now = new Date().toISOString();
 
     currentBillId = id;
@@ -247,19 +272,19 @@ function createNewBill() {
         id: id,
 
         patientName: "",
+
         hospitalName: "",
+
         billNumber: "",
+
         billDate: getToday(),
 
         items: [],
 
         createdAt: now,
+
         updatedAt: now,
     };
-
-    // Don't save it to history yet.
-    // It will be saved when the user clicks
-    // "Save Bill Info".
 
     loadCurrentBillIntoForm();
 
@@ -267,13 +292,26 @@ function createNewBill() {
 
     showToast("New bill started.");
 }
+
 /* =========================================================
-   6. SAVE CURRENT BILL
+   7. SAVE CURRENT BILL
 ========================================================= */
+
+/*
+    If the bill does NOT exist in localStorage:
+
+        ADD IT
+
+    If it already exists:
+
+        UPDATE IT
+
+    This prevents duplicate bills.
+*/
 
 function saveCurrentBill() {
     if (!currentBillId) {
-        showToast("Please start a new bill first.");
+        showToast("Click 'New Bill' first.");
 
         return;
     }
@@ -283,32 +321,31 @@ function saveCurrentBill() {
     const bills = getBills();
 
     const existingIndex = bills.findIndex(function (bill) {
-        return bill.id === currentBillId;
+        return Number(bill.id) === Number(currentBillId);
     });
 
     if (existingIndex === -1) {
         /*
-            This is the first time this bill
-            is being saved.
+            First save.
 
-            Add it to history.
+            Add the bill.
         */
 
         bills.unshift({
             ...currentBill,
+            items: [...(currentBill.items || [])],
         });
     } else {
         /*
-            IMPORTANT:
+            Existing bill.
 
-            The bill already exists.
-
-            Replace that SAME bill instead
-            of creating a new one.
+            UPDATE the same bill.
         */
 
         bills[existingIndex] = {
             ...currentBill,
+
+            items: [...(currentBill.items || [])],
         };
     }
 
@@ -318,15 +355,16 @@ function saveCurrentBill() {
 
     updateBillStatus();
 }
+
 /* =========================================================
-   7. LOAD BILL
+   8. LOAD BILL FROM HISTORY
 ========================================================= */
 
 function loadBill(id) {
     const bills = getBills();
 
     const bill = bills.find(function (item) {
-        return item.id === id;
+        return Number(item.id) === Number(id);
     });
 
     if (!bill) {
@@ -338,18 +376,45 @@ function loadBill(id) {
     currentBillId = bill.id;
 
     currentBill = {
-        ...bill,
+        id: bill.id,
 
-        items: (bill.items || []).map(function (item) {
-            return {
-                ...item,
-            };
-        }),
+        patientName: bill.patientName || "",
+
+        hospitalName: bill.hospitalName || "",
+
+        billNumber: bill.billNumber || "",
+
+        billDate: bill.billDate || "",
+
+        items: Array.isArray(bill.items)
+            ? bill.items.map(function (item) {
+                  return {
+                      ...item,
+                  };
+              })
+            : [],
+
+        createdAt: bill.createdAt || "",
+
+        updatedAt: bill.updatedAt || "",
     };
+
+    /*
+        Put saved information
+        back into the input fields.
+    */
 
     loadCurrentBillIntoForm();
 
+    /*
+        Re-render the entire application.
+    */
+
     updateEverything();
+
+    /*
+        Go to Bill Information.
+    */
 
     const billSection = document.getElementById("bill-info");
 
@@ -359,11 +424,11 @@ function loadBill(id) {
         });
     }
 
-    showToast("Bill loaded. You can edit it.");
+    showToast("Bill opened. You can edit it now.");
 }
 
 /* =========================================================
-   8. LOAD BILL DATA INTO INPUTS
+   9. LOAD CURRENT BILL INTO INPUTS
 ========================================================= */
 
 function loadCurrentBillIntoForm() {
@@ -380,12 +445,12 @@ function loadCurrentBillIntoForm() {
     }
 
     if (billDateInput) {
-        billDateInput.value = currentBill.billDate || "";
+        billDateInput.value = currentBill.billDate || getToday();
     }
 }
 
 /* =========================================================
-   9. DELETE BILL
+   10. DELETE BILL
 ========================================================= */
 
 function deleteBill(id) {
@@ -398,12 +463,17 @@ function deleteBill(id) {
     let bills = getBills();
 
     bills = bills.filter(function (bill) {
-        return bill.id !== id;
+        return Number(bill.id) !== Number(id);
     });
 
     saveBills(bills);
 
-    if (currentBillId === id) {
+    /*
+        If the currently open bill
+        was deleted, clear it.
+    */
+
+    if (Number(currentBillId) === Number(id)) {
         currentBillId = null;
 
         currentBill = {
@@ -433,7 +503,7 @@ function deleteBill(id) {
 }
 
 /* =========================================================
-   10. BILL INFORMATION FORM
+   11. BILL INFORMATION SAVE
 ========================================================= */
 
 if (billInfoForm) {
@@ -441,9 +511,7 @@ if (billInfoForm) {
         event.preventDefault();
 
         /*
-                If there is no active bill,
-                the user hasn't clicked
-                "New Bill" yet.
+                User must start a bill first.
             */
 
         if (!currentBillId) {
@@ -453,27 +521,28 @@ if (billInfoForm) {
         }
 
         /*
-                Update the CURRENT bill.
+                Update current bill data.
             */
 
-        currentBill.patientName = patientNameInput.value.trim();
+        currentBill.patientName = patientNameInput
+            ? patientNameInput.value.trim()
+            : "";
 
-        currentBill.hospitalName = hospitalNameInput.value.trim();
+        currentBill.hospitalName = hospitalNameInput
+            ? hospitalNameInput.value.trim()
+            : "";
 
-        currentBill.billNumber = billNumberInput.value.trim();
+        currentBill.billNumber = billNumberInput
+            ? billNumberInput.value.trim()
+            : "";
 
-        currentBill.billDate = billDateInput.value;
+        currentBill.billDate = billDateInput ? billDateInput.value : "";
 
         /*
-                This will either:
+                Save to localStorage.
 
-                1. Add the bill to history
-                   if it's new
-
-                OR
-
-                2. Update the existing bill
-                   if it's already there.
+                Existing bill = UPDATE.
+                New bill = ADD.
             */
 
         saveCurrentBill();
@@ -483,8 +552,9 @@ if (billInfoForm) {
         showToast("Bill information saved.");
     });
 }
+
 /* =========================================================
-   11. ITEM LIVE TOTAL
+   12. ITEM LIVE TOTAL
 ========================================================= */
 
 function updateItemLiveTotal() {
@@ -508,57 +578,17 @@ if (itemPriceInput) {
 }
 
 /* =========================================================
-   12. ADD ITEM
+   13. ADD NEW ITEM
 ========================================================= */
 
 if (itemForm) {
     itemForm.addEventListener("submit", function (event) {
         event.preventDefault();
 
-        const description = itemDescriptionInput.value.trim();
-
-        const category = itemCategoryInput.value;
-
-        const quantity = Number(itemQuantityInput.value);
-
-        const price = Number(itemPriceInput.value);
-
-        /* ---------- Validation ---------- */
-
-        if (!description) {
-            showToast("Enter an item description.");
-
-            itemDescriptionInput.focus();
-
-            return;
-        }
-
-        if (!category) {
-            showToast("Select an item category.");
-
-            itemCategoryInput.focus();
-
-            return;
-        }
-
-        if (!Number.isFinite(quantity) || quantity <= 0) {
-            showToast("Quantity must be greater than 0.");
-
-            itemQuantityInput.focus();
-
-            return;
-        }
-
-        if (!Number.isFinite(price) || price < 0) {
-            showToast("Enter a valid price.");
-
-            itemPriceInput.focus();
-
-            return;
-        }
-
         /*
-                Make sure there is an active bill.
+                Do NOT create a bill automatically here.
+
+                User must click New Bill first.
             */
 
         if (!currentBillId) {
@@ -567,8 +597,66 @@ if (itemForm) {
             return;
         }
 
+        const description = itemDescriptionInput
+            ? itemDescriptionInput.value.trim()
+            : "";
+
+        const category = itemCategoryInput ? itemCategoryInput.value : "";
+
+        const quantity = Number(
+            itemQuantityInput ? itemQuantityInput.value : 0,
+        );
+
+        const price = Number(itemPriceInput ? itemPriceInput.value : 0);
+
+        /* ---------- Validation ---------- */
+
+        if (!description) {
+            showToast("Enter an item description.");
+
+            if (itemDescriptionInput) {
+                itemDescriptionInput.focus();
+            }
+
+            return;
+        }
+
+        if (!category) {
+            showToast("Select an item category.");
+
+            if (itemCategoryInput) {
+                itemCategoryInput.focus();
+            }
+
+            return;
+        }
+
+        if (!Number.isFinite(quantity) || quantity <= 0) {
+            showToast("Quantity must be greater than 0.");
+
+            if (itemQuantityInput) {
+                itemQuantityInput.focus();
+            }
+
+            return;
+        }
+
+        if (!Number.isFinite(price) || price < 0) {
+            showToast("Enter a valid price.");
+
+            if (itemPriceInput) {
+                itemPriceInput.focus();
+            }
+
+            return;
+        }
+
+        /*
+                Create the new item.
+            */
+
         const item = {
-            id: Date.now(),
+            id: Date.now() + Math.floor(Math.random() * 1000),
 
             description: description,
 
@@ -581,16 +669,22 @@ if (itemForm) {
             total: quantity * price,
         };
 
+        /*
+                Add item to CURRENT bill.
+
+                This does NOT create another bill.
+            */
+
         currentBill.items.push(item);
 
         /*
-                Save immediately.
+                Save SAME bill.
             */
 
         saveCurrentBill();
 
         /*
-                Reset item form.
+                Clear item form.
             */
 
         itemForm.reset();
@@ -603,105 +697,149 @@ if (itemForm) {
 
         updateEverything();
 
-        showToast("Item added.");
+        showToast("Item added to this bill.");
     });
 }
 
 /* =========================================================
-   13. DELETE ITEM
+   14. ANALYSIS
 ========================================================= */
 
-if (itemsTableBody) {
-    itemsTableBody.addEventListener("click", function (event) {
-        const button = event.target.closest(".delete-item");
+function analyzeItem(item, index) {
+    const issues = [];
 
-        if (!button) {
-            return;
+    /* ---------- Invalid price ---------- */
+
+    if (Number(item.price) <= 0) {
+        issues.push({
+            type: "critical",
+
+            title: "Invalid price",
+
+            message: "This item has a zero or invalid unit price.",
+        });
+    }
+
+    /* ---------- Duplicate item ---------- */
+
+    const duplicate = currentBill.items.some(function (other, otherIndex) {
+        if (otherIndex === index) {
+            return false;
         }
 
-        const index = Number(button.dataset.index);
+        const sameDescription =
+            String(other.description || "")
+                .trim()
+                .toLowerCase() ===
+            String(item.description || "")
+                .trim()
+                .toLowerCase();
 
-        if (
-            !Number.isInteger(index) ||
-            index < 0 ||
-            index >= currentBill.items.length
-        ) {
-            return;
-        }
+        const sameCategory = other.category === item.category;
 
-        const removedItem = currentBill.items[index];
+        const samePrice = Number(other.price) === Number(item.price);
 
-        currentBill.items.splice(index, 1);
-
-        saveCurrentBill();
-
-        updateEverything();
-
-        showToast(`"${removedItem.description}" removed.`);
+        return sameDescription && sameCategory && samePrice;
     });
-}
 
-/* =========================================================
-   14. CLEAR ITEMS
-========================================================= */
+    if (duplicate) {
+        issues.push({
+            type: "warning",
 
-if (clearItemsBtn) {
-    clearItemsBtn.addEventListener("click", function () {
-        if (currentBill.items.length === 0) {
-            showToast("There are no items to clear.");
+            title: "Possible duplicate",
 
-            return;
-        }
+            message:
+                "A similar item with the same category and price appears elsewhere in this bill.",
+        });
+    }
 
-        const confirmed = confirm("Clear all items from this bill?");
+    /* ---------- High quantity ---------- */
 
-        if (!confirmed) {
-            return;
-        }
+    if (Number(item.quantity) >= 10) {
+        issues.push({
+            type: "warning",
 
-        currentBill.items = [];
+            title: "High quantity",
 
-        saveCurrentBill();
+            message:
+                "This item has a quantity of " +
+                item.quantity +
+                ". Verify that it matches the original bill.",
+        });
+    }
 
-        updateEverything();
+    /* ---------- High price ---------- */
 
-        showToast("All items cleared.");
-    });
-}
+    if (currentBill.items.length >= 3) {
+        const prices = currentBill.items
+            .map(function (entry) {
+                return Number(entry.price);
+            })
+            .filter(function (price) {
+                return price > 0;
+            });
 
-/* =========================================================
-   15. NEW BILL BUTTON
-========================================================= */
+        if (prices.length >= 3) {
+            const average =
+                prices.reduce(function (sum, price) {
+                    return sum + price;
+                }, 0) / prices.length;
 
-if (newBillBtn) {
-    newBillBtn.addEventListener("click", function () {
-        const hasCurrentData =
-            currentBill.patientName ||
-            currentBill.hospitalName ||
-            currentBill.billNumber ||
-            currentBill.items.length > 0;
+            if (Number(item.price) >= average * 3) {
+                issues.push({
+                    type: "warning",
 
-        if (hasCurrentData) {
-            const confirmed = confirm(
-                "Start a new bill? Your current bill is already saved in history.",
-            );
+                    title: "Unusually high price",
 
-            if (!confirmed) {
-                return;
+                    message:
+                        "This unit price is significantly higher than the average unit price of the other items.",
+                });
             }
         }
+    }
 
-        createNewBill();
+    /* ---------- Large bill share ---------- */
 
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth",
+    const billTotal = getCurrentBillTotal();
+
+    if (billTotal > 0 && Number(item.total) / billTotal >= 0.5) {
+        issues.push({
+            type: "warning",
+
+            title: "Large share of bill",
+
+            message:
+                "This item represents 50% or more of the current bill total.",
         });
-    });
+    }
+
+    return issues;
 }
 
 /* =========================================================
-   16. RENDER ITEMS TABLE
+   15. ITEM STATUS
+========================================================= */
+
+function getItemStatus(item, index) {
+    const issues = analyzeItem(item, index);
+
+    const critical = issues.some(function (issue) {
+        return issue.type === "critical";
+    });
+
+    if (critical) {
+        return "critical";
+    }
+
+    if (issues.length > 0) {
+        return "warning";
+    }
+
+    return "normal";
+}
+
+/* =========================================================
+   16. RENDER CURRENT BILL ITEMS
 ========================================================= */
 
 function renderItems() {
@@ -711,7 +849,7 @@ function renderItems() {
 
     itemsTableBody.innerHTML = "";
 
-    if (currentBill.items.length === 0) {
+    if (!currentBill.items || currentBill.items.length === 0) {
         if (itemsEmpty) {
             itemsEmpty.style.display = "flex";
         }
@@ -764,7 +902,7 @@ function renderItems() {
                 </td>
 
                 <td>
-                    ${item.quantity}
+                    ${Number(item.quantity)}
                 </td>
 
                 <td>
@@ -787,14 +925,22 @@ function renderItems() {
 
                 </td>
 
-                <td>
+                <td class="item-actions">
+
+                    <button
+                        type="button"
+                        class="edit-item"
+                        data-index="${index}"
+                    >
+                        Edit
+                    </button>
 
                     <button
                         type="button"
                         class="delete-item"
                         data-index="${index}"
                     >
-                        ×
+                        Delete
                     </button>
 
                 </td>
@@ -810,150 +956,594 @@ function renderItems() {
 }
 
 /* =========================================================
-   17. BILL ANALYSIS
+   17. DELETE ITEM
 ========================================================= */
 
-function analyzeItem(item, index) {
-    const issues = [];
-
-    /* -----------------------------------------
-       CHECK 1 — Invalid price
-    ----------------------------------------- */
-
-    if (item.price <= 0) {
-        issues.push({
-            type: "critical",
-
-            title: "Invalid price",
-
-            message: "This item has a zero or invalid unit price.",
-        });
+function deleteItem(index) {
+    if (
+        !Number.isInteger(index) ||
+        index < 0 ||
+        index >= currentBill.items.length
+    ) {
+        return;
     }
 
-    /* -----------------------------------------
-       CHECK 2 — Possible duplicate
-    ----------------------------------------- */
+    const item = currentBill.items[index];
 
-    const duplicate = currentBill.items.some(function (other, otherIndex) {
-        if (otherIndex === index) {
-            return false;
-        }
+    const confirmed = confirm(`Delete "${item.description}" from this bill?`);
 
-        const sameDescription =
-            other.description.trim().toLowerCase() ===
-            item.description.trim().toLowerCase();
-
-        const sameCategory = other.category === item.category;
-
-        const samePrice = Number(other.price) === Number(item.price);
-
-        return sameDescription && sameCategory && samePrice;
-    });
-
-    if (duplicate) {
-        issues.push({
-            type: "warning",
-
-            title: "Possible duplicate",
-
-            message:
-                "A similar item with the same category and price appears elsewhere in this bill.",
-        });
+    if (!confirmed) {
+        return;
     }
 
-    /* -----------------------------------------
-       CHECK 3 — High quantity
-    ----------------------------------------- */
+    currentBill.items.splice(index, 1);
 
-    if (item.quantity >= 10) {
-        issues.push({
-            type: "warning",
+    /*
+        Save SAME bill.
+    */
 
-            title: "High quantity",
+    saveCurrentBill();
 
-            message:
-                "This item has a quantity of " +
-                item.quantity +
-                ". Verify that the quantity matches the original bill.",
-        });
-    }
+    updateEverything();
 
-    /* -----------------------------------------
-       CHECK 4 — Unusually high price
-    ----------------------------------------- */
-
-    if (currentBill.items.length >= 3) {
-        const prices = currentBill.items
-            .map(function (entry) {
-                return Number(entry.price);
-            })
-            .filter(function (price) {
-                return price > 0;
-            });
-
-        if (prices.length >= 3) {
-            const average =
-                prices.reduce(function (sum, price) {
-                    return sum + price;
-                }, 0) / prices.length;
-
-            if (item.price >= average * 3) {
-                issues.push({
-                    type: "warning",
-
-                    title: "Unusually high price",
-
-                    message:
-                        "This unit price is significantly higher than the average unit price of the other items.",
-                });
-            }
-        }
-    }
-
-    /* -----------------------------------------
-       CHECK 5 — Large portion of bill
-    ----------------------------------------- */
-
-    const total = getCurrentBillTotal();
-
-    if (total > 0 && item.total / total >= 0.5) {
-        issues.push({
-            type: "warning",
-
-            title: "Large share of bill",
-
-            message:
-                "This item represents 50% or more of the current bill total.",
-        });
-    }
-
-    return issues;
+    showToast("Item deleted.");
 }
 
 /* =========================================================
-   18. ITEM STATUS
+   18. ITEM TABLE BUTTON HANDLER
 ========================================================= */
 
-function getItemStatus(item, index) {
-    const issues = analyzeItem(item, index);
+if (itemsTableBody) {
+    itemsTableBody.addEventListener("click", function (event) {
+        /*
+                EDIT
+            */
 
-    const hasCritical = issues.some(function (issue) {
-        return issue.type === "critical";
+        const editButton = event.target.closest(".edit-item");
+
+        if (editButton) {
+            const index = Number(editButton.dataset.index);
+
+            openEditItemModal(index);
+
+            return;
+        }
+
+        /*
+                DELETE
+            */
+
+        const deleteButton = event.target.closest(".delete-item");
+
+        if (deleteButton) {
+            const index = Number(deleteButton.dataset.index);
+
+            deleteItem(index);
+        }
     });
-
-    if (hasCritical) {
-        return "critical";
-    }
-
-    if (issues.length > 0) {
-        return "warning";
-    }
-
-    return "normal";
 }
 
 /* =========================================================
-   19. RENDER ANALYSIS
+   19. CLEAR ITEMS
+========================================================= */
+
+if (clearItemsBtn) {
+    clearItemsBtn.addEventListener("click", function () {
+        if (currentBill.items.length === 0) {
+            showToast("There are no items to clear.");
+
+            return;
+        }
+
+        const confirmed = confirm("Clear all items from this bill?");
+
+        if (!confirmed) {
+            return;
+        }
+
+        currentBill.items = [];
+
+        saveCurrentBill();
+
+        updateEverything();
+
+        showToast("All items cleared.");
+    });
+}
+
+/* =========================================================
+   20. ITEM EDIT MODAL
+========================================================= */
+
+function createEditItemModal() {
+    /*
+        Don't create the modal twice.
+    */
+
+    if (document.getElementById("editItemModal")) {
+        return;
+    }
+
+    const modal = document.createElement("div");
+
+    modal.id = "editItemModal";
+
+    modal.className = "edit-item-modal";
+
+    modal.innerHTML = `
+
+        <div
+            class="edit-item-overlay"
+        ></div>
+
+
+        <div
+            class="edit-item-dialog"
+        >
+
+            <div
+                class="edit-item-header"
+            >
+
+                <div>
+
+                    <h3>
+                        Edit Bill Item
+                    </h3>
+
+                    <p>
+                        Change only the information
+                        you need to update.
+                    </p>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="edit-item-close"
+                    id="closeEditItem"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <form
+                id="editItemForm"
+            >
+
+                <div
+                    class="edit-item-fields"
+                >
+
+                    <div
+                        class="form-group"
+                    >
+
+                        <label>
+                            Description
+                        </label>
+
+                        <input
+                            type="text"
+                            id="editItemDescription"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div
+                        class="form-group"
+                    >
+
+                        <label>
+                            Category
+                        </label>
+
+                        <select
+                            id="editItemCategory"
+                            required
+                        >
+
+                            <option value="">
+                                Select category
+                            </option>
+
+                            <option value="Consultation">
+                                Consultation
+                            </option>
+
+                            <option value="Lab">
+                                Laboratory
+                            </option>
+
+                            <option value="Medicine">
+                                Medicine
+                            </option>
+
+                            <option value="Room">
+                                Room
+                            </option>
+
+                            <option value="Procedure">
+                                Procedure
+                            </option>
+
+                            <option value="Surgery">
+                                Surgery
+                            </option>
+
+                            <option value="Imaging">
+                                Imaging
+                            </option>
+
+                            <option value="Other">
+                                Other
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div
+                        class="edit-item-row"
+                    >
+
+                        <div
+                            class="form-group"
+                        >
+
+                            <label>
+                                Quantity
+                            </label>
+
+                            <input
+                                type="number"
+                                id="editItemQuantity"
+                                min="1"
+                                step="1"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div
+                            class="form-group"
+                        >
+
+                            <label>
+                                Unit Price
+                            </label>
+
+                            <input
+                                type="number"
+                                id="editItemPrice"
+                                min="0"
+                                step="0.01"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="edit-item-total"
+                    >
+
+                        <span>
+                            New Total
+                        </span>
+
+                        <strong
+                            id="editItemTotal"
+                        >
+                            Rs. 0.00
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="edit-item-actions"
+                >
+
+                    <button
+                        type="button"
+                        class="secondary-btn"
+                        id="cancelEditItem"
+                    >
+                        Cancel
+                    </button>
+
+
+                    <button
+                        type="submit"
+                        class="primary-btn"
+                    >
+                        Save Changes
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    `;
+
+    document.body.appendChild(modal);
+
+    /*
+        Close button.
+    */
+
+    const closeButton = document.getElementById("closeEditItem");
+
+    if (closeButton) {
+        closeButton.addEventListener("click", closeEditItemModal);
+    }
+
+    /*
+        Cancel button.
+    */
+
+    const cancelButton = document.getElementById("cancelEditItem");
+
+    if (cancelButton) {
+        cancelButton.addEventListener("click", closeEditItemModal);
+    }
+
+    /*
+        Click outside modal.
+    */
+
+    const overlay = modal.querySelector(".edit-item-overlay");
+
+    if (overlay) {
+        overlay.addEventListener("click", closeEditItemModal);
+    }
+
+    /*
+        Live total.
+    */
+
+    const editQuantity = document.getElementById("editItemQuantity");
+
+    const editPrice = document.getElementById("editItemPrice");
+
+    if (editQuantity) {
+        editQuantity.addEventListener("input", updateEditItemTotal);
+    }
+
+    if (editPrice) {
+        editPrice.addEventListener("input", updateEditItemTotal);
+    }
+
+    /*
+        Save edited item.
+    */
+
+    const editForm = document.getElementById("editItemForm");
+
+    if (editForm) {
+        editForm.addEventListener("submit", saveEditedItem);
+    }
+}
+
+/* =========================================================
+   21. OPEN ITEM EDIT MODAL
+========================================================= */
+
+function openEditItemModal(index) {
+    if (
+        !currentBill ||
+        !Array.isArray(currentBill.items) ||
+        !currentBill.items[index]
+    ) {
+        showToast("Could not find this item.");
+
+        return;
+    }
+
+    editingItemIndex = index;
+
+    /*
+        Create modal if it doesn't exist.
+    */
+
+    createEditItemModal();
+
+    const item = currentBill.items[index];
+
+    const descriptionInput = document.getElementById("editItemDescription");
+
+    const categoryInput = document.getElementById("editItemCategory");
+
+    const quantityInput = document.getElementById("editItemQuantity");
+
+    const priceInput = document.getElementById("editItemPrice");
+
+    if (descriptionInput) {
+        descriptionInput.value = item.description || "";
+    }
+
+    if (categoryInput) {
+        categoryInput.value = item.category || "";
+    }
+
+    if (quantityInput) {
+        quantityInput.value = item.quantity || 1;
+    }
+
+    if (priceInput) {
+        priceInput.value = item.price || 0;
+    }
+
+    updateEditItemTotal();
+
+    const modal = document.getElementById("editItemModal");
+
+    if (modal) {
+        modal.classList.add("open");
+    }
+
+    setTimeout(function () {
+        if (descriptionInput) {
+            descriptionInput.focus();
+        }
+    }, 100);
+}
+
+/* =========================================================
+   22. UPDATE EDIT ITEM TOTAL
+========================================================= */
+
+function updateEditItemTotal() {
+    const quantityInput = document.getElementById("editItemQuantity");
+
+    const priceInput = document.getElementById("editItemPrice");
+
+    const totalElement = document.getElementById("editItemTotal");
+
+    if (!quantityInput || !priceInput || !totalElement) {
+        return;
+    }
+
+    const quantity = Number(quantityInput.value) || 0;
+
+    const price = Number(priceInput.value) || 0;
+
+    totalElement.textContent = formatMoney(quantity * price);
+}
+
+/* =========================================================
+   23. SAVE EDITED ITEM
+========================================================= */
+
+function saveEditedItem(event) {
+    event.preventDefault();
+
+    if (editingItemIndex === null) {
+        return;
+    }
+
+    const item = currentBill.items[editingItemIndex];
+
+    if (!item) {
+        showToast("Could not find this item.");
+
+        return;
+    }
+
+    const descriptionInput = document.getElementById("editItemDescription");
+
+    const categoryInput = document.getElementById("editItemCategory");
+
+    const quantityInput = document.getElementById("editItemQuantity");
+
+    const priceInput = document.getElementById("editItemPrice");
+
+    const description = descriptionInput ? descriptionInput.value.trim() : "";
+
+    const category = categoryInput ? categoryInput.value : "";
+
+    const quantity = Number(quantityInput ? quantityInput.value : 0);
+
+    const price = Number(priceInput ? priceInput.value : 0);
+
+    /* ---------- Validation ---------- */
+
+    if (!description) {
+        showToast("Enter a description.");
+
+        return;
+    }
+
+    if (!category) {
+        showToast("Select a category.");
+
+        return;
+    }
+
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+        showToast("Quantity must be greater than 0.");
+
+        return;
+    }
+
+    if (!Number.isFinite(price) || price < 0) {
+        showToast("Enter a valid price.");
+
+        return;
+    }
+
+    /*
+        IMPORTANT:
+
+        Update the EXISTING item.
+
+        Do NOT push a new item.
+    */
+
+    item.description = description;
+
+    item.category = category;
+
+    item.quantity = quantity;
+
+    item.price = price;
+
+    item.total = quantity * price;
+
+    /*
+        Save the SAME BILL.
+    */
+
+    saveCurrentBill();
+
+    /*
+        Update all dashboard/report/
+        analysis/table values.
+    */
+
+    updateEverything();
+
+    /*
+        Close modal.
+    */
+
+    closeEditItemModal();
+
+    showToast("Item updated successfully.");
+}
+
+/* =========================================================
+   24. CLOSE ITEM EDIT MODAL
+========================================================= */
+
+function closeEditItemModal() {
+    const modal = document.getElementById("editItemModal");
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove("open");
+
+    editingItemIndex = null;
+}
+
+/* =========================================================
+   25. RENDER ANALYSIS
 ========================================================= */
 
 function renderAnalysis() {
@@ -963,7 +1553,7 @@ function renderAnalysis() {
 
     analysisList.innerHTML = "";
 
-    if (currentBill.items.length === 0) {
+    if (!currentBill.items || currentBill.items.length === 0) {
         if (normalCount) {
             normalCount.textContent = "0";
         }
@@ -1031,13 +1621,18 @@ function renderAnalysis() {
 
             div.innerHTML = `
 
-                        <div class="analysis-icon">
+                        <div
+                            class="analysis-icon"
+                        >
 
                             ${issue.type === "critical" ? "!" : "?"}
 
                         </div>
 
-                        <div class="analysis-content">
+
+                        <div
+                            class="analysis-content"
+                        >
 
                             <strong>
 
@@ -1049,6 +1644,7 @@ function renderAnalysis() {
 
                             </strong>
 
+
                             <p>
 
                                 ${escapeHTML(issue.message)}
@@ -1057,7 +1653,10 @@ function renderAnalysis() {
 
                         </div>
 
-                        <div class="analysis-price">
+
+                        <div
+                            class="analysis-price"
+                        >
 
                             ${formatMoney(item.total)}
 
@@ -1084,13 +1683,20 @@ function renderAnalysis() {
     if (warnings === 0 && critical === 0) {
         analysisList.innerHTML = `
 
-            <div class="analysis-item normal">
+            <div
+                class="analysis-item normal"
+            >
 
-                <div class="analysis-icon">
+                <div
+                    class="analysis-icon"
+                >
                     ✓
                 </div>
 
-                <div class="analysis-content">
+
+                <div
+                    class="analysis-content"
+                >
 
                     <strong>
                         No unusual patterns detected
@@ -1105,7 +1711,10 @@ function renderAnalysis() {
 
                 </div>
 
-                <div class="analysis-price">
+
+                <div
+                    class="analysis-price"
+                >
 
                     ${currentBill.items.length}
                     items
@@ -1119,7 +1728,7 @@ function renderAnalysis() {
 }
 
 /* =========================================================
-   20. DASHBOARD
+   26. DASHBOARD
 ========================================================= */
 
 function renderDashboard() {
@@ -1155,7 +1764,7 @@ function renderDashboard() {
         }
     } else {
         const sorted = [...currentBill.items].sort(function (a, b) {
-            return b.total - a.total;
+            return Number(b.total) - Number(a.total);
         });
 
         if (dashboardHighest) {
@@ -1180,7 +1789,7 @@ function renderDashboard() {
 }
 
 /* =========================================================
-   21. DONUT CHART
+   27. DONUT CHART
 ========================================================= */
 
 function renderDonut() {
@@ -1218,11 +1827,13 @@ function renderDonut() {
     const categories = {};
 
     currentBill.items.forEach(function (item) {
-        if (!categories[item.category]) {
-            categories[item.category] = 0;
+        const category = item.category || "Other";
+
+        if (!categories[category]) {
+            categories[category] = 0;
         }
 
-        categories[item.category] += item.total;
+        categories[category] += Number(item.total || 0);
     });
 
     const sorted = Object.entries(categories)
@@ -1231,9 +1842,9 @@ function renderDonut() {
         })
         .slice(0, 5);
 
-    const largest = sorted[0][1];
+    const largest = sorted.length > 0 ? sorted[0][1] : 0;
 
-    const percentage = largest / total;
+    const percentage = total > 0 ? largest / total : 0;
 
     donutProgress.style.strokeDashoffset = circumference * (1 - percentage);
 
@@ -1242,7 +1853,7 @@ function renderDonut() {
 
         const amount = entry[1];
 
-        const percentage = ((amount / total) * 100).toFixed(1);
+        const categoryPercentage = ((amount / total) * 100).toFixed(1);
 
         const div = document.createElement("div");
 
@@ -1250,7 +1861,9 @@ function renderDonut() {
 
         div.innerHTML = `
 
-                <span class="legend-name">
+                <span
+                    class="legend-name"
+                >
 
                     <span
                         class="legend-marker"
@@ -1260,9 +1873,12 @@ function renderDonut() {
 
                 </span>
 
-                <span class="legend-value">
 
-                    ${percentage}%
+                <span
+                    class="legend-value"
+                >
+
+                    ${categoryPercentage}%
 
                 </span>
 
@@ -1273,7 +1889,7 @@ function renderDonut() {
 }
 
 /* =========================================================
-   22. HIGHEST PRICED ITEMS
+   28. HIGHEST PRICED ITEMS
 ========================================================= */
 
 function renderHighestItems() {
@@ -1286,9 +1902,13 @@ function renderHighestItems() {
     if (currentBill.items.length === 0) {
         highestItems.innerHTML = `
 
-            <div class="empty-state small">
+            <div
+                class="empty-state small"
+            >
 
-                <div class="empty-icon">
+                <div
+                    class="empty-icon"
+                >
                     ₨
                 </div>
 
@@ -1310,7 +1930,7 @@ function renderHighestItems() {
 
     const sorted = [...currentBill.items]
         .sort(function (a, b) {
-            return b.total - a.total;
+            return Number(b.total) - Number(a.total);
         })
         .slice(0, 5);
 
@@ -1321,19 +1941,25 @@ function renderHighestItems() {
 
         div.innerHTML = `
 
-                <span class="rank">
+                <span
+                    class="rank"
+                >
 
                     ${String(index + 1).padStart(2, "0")}
 
                 </span>
 
-                <div class="highest-info">
+
+                <div
+                    class="highest-info"
+                >
 
                     <strong>
 
                         ${escapeHTML(item.description)}
 
                     </strong>
+
 
                     <span>
 
@@ -1343,7 +1969,10 @@ function renderHighestItems() {
 
                 </div>
 
-                <strong class="highest-price">
+
+                <strong
+                    class="highest-price"
+                >
 
                     ${formatMoney(item.total)}
 
@@ -1356,7 +1985,7 @@ function renderHighestItems() {
 }
 
 /* =========================================================
-   23. REPORT
+   29. REPORT
 ========================================================= */
 
 function renderReport() {
@@ -1418,7 +2047,7 @@ function renderReport() {
                 </td>
 
                 <td>
-                    ${item.quantity}
+                    ${Number(item.quantity)}
                 </td>
 
                 <td>
@@ -1442,7 +2071,7 @@ function renderReport() {
 }
 
 /* =========================================================
-   24. BILL HISTORY
+   30. BILL HISTORY
 ========================================================= */
 
 function renderHistory() {
@@ -1457,9 +2086,13 @@ function renderHistory() {
     if (bills.length === 0) {
         historyList.innerHTML = `
 
-            <div class="empty-state">
+            <div
+                class="empty-state"
+            >
 
-                <div class="empty-icon">
+                <div
+                    class="empty-icon"
+                >
                     ◷
                 </div>
 
@@ -1484,7 +2117,7 @@ function renderHistory() {
 
         historyItem.className = "history-item";
 
-        if (bill.id === currentBillId) {
+        if (Number(bill.id) === Number(currentBillId)) {
             historyItem.classList.add("current-bill");
         }
 
@@ -1494,11 +2127,19 @@ function renderHistory() {
 
         const billNumber = bill.billNumber || "No bill number";
 
-        const itemCount = bill.items?.length || 0;
+        const items = Array.isArray(bill.items) ? bill.items : [];
+
+        const itemCount = items.length;
+
+        const total = items.reduce(function (sum, item) {
+            return sum + Number(item.total || 0);
+        }, 0);
 
         historyItem.innerHTML = `
 
-                <div class="history-main">
+                <div
+                    class="history-main"
+                >
 
                     <strong>
 
@@ -1515,7 +2156,9 @@ function renderHistory() {
                 </div>
 
 
-                <div class="history-data">
+                <div
+                    class="history-data"
+                >
 
                     <span>
                         Patient
@@ -1530,7 +2173,9 @@ function renderHistory() {
                 </div>
 
 
-                <div class="history-data">
+                <div
+                    class="history-data"
+                >
 
                     <span>
                         Items
@@ -1543,7 +2188,9 @@ function renderHistory() {
                 </div>
 
 
-                <div class="history-data">
+                <div
+                    class="history-data"
+                >
 
                     <span>
                         Total
@@ -1551,18 +2198,16 @@ function renderHistory() {
 
                     <strong>
 
-                        ${formatMoney(
-                            bill.items?.reduce(function (total, item) {
-                                return total + Number(item.total || 0);
-                            }, 0) || 0,
-                        )}
+                        ${formatMoney(total)}
 
                     </strong>
 
                 </div>
 
 
-                <div class="history-actions">
+                <div
+                    class="history-actions"
+                >
 
                     <button
                         type="button"
@@ -1570,7 +2215,11 @@ function renderHistory() {
                         data-id="${bill.id}"
                     >
 
-                        ${bill.id === currentBillId ? "Editing" : "Open / Edit"}
+                        ${
+                            Number(bill.id) === Number(currentBillId)
+                                ? "Editing"
+                                : "Open / Edit"
+                        }
 
                     </button>
 
@@ -1594,14 +2243,16 @@ function renderHistory() {
 }
 
 /* =========================================================
-   25. HISTORY BUTTONS
+   31. HISTORY BUTTONS
 ========================================================= */
 
 if (historyList) {
     historyList.addEventListener("click", function (event) {
-        const openButton = event.target.closest(".history-load");
+        /*
+                OPEN / EDIT
+            */
 
-        const deleteButton = event.target.closest(".history-delete");
+        const openButton = event.target.closest(".history-load");
 
         if (openButton) {
             const id = Number(openButton.dataset.id);
@@ -1610,6 +2261,12 @@ if (historyList) {
 
             return;
         }
+
+        /*
+                DELETE
+            */
+
+        const deleteButton = event.target.closest(".history-delete");
 
         if (deleteButton) {
             const id = Number(deleteButton.dataset.id);
@@ -1620,7 +2277,7 @@ if (historyList) {
 }
 
 /* =========================================================
-   26. CLEAR BILL HISTORY
+   32. CLEAR HISTORY
 ========================================================= */
 
 if (clearHistoryBtn) {
@@ -1672,7 +2329,43 @@ if (clearHistoryBtn) {
 }
 
 /* =========================================================
-   27. CSV EXPORT
+   33. NEW BILL BUTTON
+========================================================= */
+
+if (newBillBtn) {
+    newBillBtn.addEventListener("click", function () {
+        const hasCurrentData =
+            Boolean(currentBillId) &&
+            (currentBill.patientName ||
+                currentBill.hospitalName ||
+                currentBill.billNumber ||
+                currentBill.items.length > 0);
+
+        if (hasCurrentData) {
+            const confirmed = confirm(
+                "Start a new bill? Your current bill is already saved in history.",
+            );
+
+            if (!confirmed) {
+                return;
+            }
+        }
+
+        /*
+                THIS creates the new ID.
+            */
+
+        createNewBill();
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+    });
+}
+
+/* =========================================================
+   34. CSV EXPORT
 ========================================================= */
 
 function csvEscape(value) {
@@ -1695,10 +2388,6 @@ if (csvBtn) {
 
         const rows = [];
 
-        /*
-                Bill information
-            */
-
         rows.push(["Hospital / Clinic", currentBill.hospitalName]);
 
         rows.push(["Patient Name", currentBill.patientName]);
@@ -1709,10 +2398,6 @@ if (csvBtn) {
 
         rows.push([]);
 
-        /*
-                Table headings
-            */
-
         rows.push([
             "Description",
             "Category",
@@ -1720,10 +2405,6 @@ if (csvBtn) {
             "Unit Price",
             "Total",
         ]);
-
-        /*
-                Items
-            */
 
         currentBill.items.forEach(function (item) {
             rows.push([
@@ -1733,9 +2414,9 @@ if (csvBtn) {
 
                 item.quantity,
 
-                item.price.toFixed(2),
+                Number(item.price).toFixed(2),
 
-                item.total.toFixed(2),
+                Number(item.total).toFixed(2),
             ]);
         });
 
@@ -1778,7 +2459,7 @@ if (csvBtn) {
 }
 
 /* =========================================================
-   28. PRINT / PDF
+   35. PRINT / PDF
 ========================================================= */
 
 if (printBtn) {
@@ -1790,8 +2471,10 @@ if (printBtn) {
         }
 
         /*
-                Browser print dialog lets the user
-                choose "Save as PDF".
+                Browser print dialog.
+
+                User can select:
+                Save as PDF
             */
 
         window.print();
@@ -1799,7 +2482,7 @@ if (printBtn) {
 }
 
 /* =========================================================
-   29. BILL STATUS
+   36. BILL STATUS
 ========================================================= */
 
 function updateBillStatus() {
@@ -1807,9 +2490,7 @@ function updateBillStatus() {
         return;
     }
 
-    const hasBill = currentBillId !== null;
-
-    if (hasBill) {
+    if (currentBillId !== null) {
         billStatus.textContent = "Bill in progress";
 
         statusDot.classList.add("loaded");
@@ -1821,7 +2502,7 @@ function updateBillStatus() {
 }
 
 /* =========================================================
-   30. NAVIGATION ACTIVE LINK
+   37. NAVIGATION
 ========================================================= */
 
 const navLinks = document.querySelectorAll(".nav-links a");
@@ -1851,7 +2532,7 @@ window.addEventListener("scroll", function () {
 });
 
 /* =========================================================
-   31. MOBILE NAVIGATION
+   38. MOBILE NAVIGATION
 ========================================================= */
 
 const menuButton = document.querySelector(".menu-button");
@@ -1871,13 +2552,12 @@ if (menuButton && nav) {
 }
 
 /* =========================================================
-   32. KEYBOARD SHORTCUTS
+   39. KEYBOARD SHORTCUT
 ========================================================= */
 
 document.addEventListener("keydown", function (event) {
     /*
             Ctrl + S
-
             Save current bill.
         */
 
@@ -1885,12 +2565,14 @@ document.addEventListener("keydown", function (event) {
         event.preventDefault();
 
         if (!currentBillId) {
-            createNewBill();
+            showToast("Click 'New Bill' first.");
+
+            return;
         }
 
         /*
-                Read current form values
-                before saving.
+                Read latest bill info
+                from inputs.
             */
 
         if (patientNameInput) {
@@ -1918,7 +2600,17 @@ document.addEventListener("keydown", function (event) {
 });
 
 /* =========================================================
-   33. UPDATE EVERYTHING
+   40. ESCAPE KEY
+========================================================= */
+
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+        closeEditItemModal();
+    }
+});
+
+/* =========================================================
+   41. UPDATE EVERYTHING
 ========================================================= */
 
 function updateEverything() {
@@ -1936,20 +2628,23 @@ function updateEverything() {
 }
 
 /* =========================================================
-   34. INITIALIZATION
+   42. INITIALIZE APP
 ========================================================= */
 
 function initializeApp() {
     /*
-        Don't automatically create a bill.
+        Don't create a bill automatically.
 
-        Existing bills stay safely in localStorage.
-        User can click New Bill or open one from history.
+        User must click New Bill.
     */
 
     updateItemLiveTotal();
 
     updateEverything();
 }
+
+/* =========================================================
+   START APPLICATION
+========================================================= */
 
 initializeApp();
