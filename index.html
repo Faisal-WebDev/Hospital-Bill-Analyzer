@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <title>BillCheck — Hospital Bill Analyzer</title>
+
+        <link rel="stylesheet" href="style.css" />
+    </head>
+
+    <body>
+        <!-- ================= NAVBAR ================= -->
+
+        <header class="navbar">
+            <div class="nav-inner">
+                <a href="#dashboard" class="logo">
+                    <span class="logo-mark">+</span>
+                    <span>BillCheck</span>
+                </a>
+
+                <nav class="nav-links">
+                    <a href="#dashboard" class="active">Dashboard</a>
+                    <a href="#bill-info">Bill</a>
+                    <a href="#items">Items</a>
+                    <a href="#analysis">Analysis</a>
+                    <a href="#report">Report</a>
+                    <a href="#history">History</a>
+                </nav>
+
+                <button class="new-bill-btn" id="newBillBtn">+ New Bill</button>
+            </div>
+        </header>
+
+        <main class="container">
+            <!-- ================= PAGE HEADER ================= -->
+
+            <section class="page-heading">
+                <div>
+                    <p class="eyebrow">BILLING REVIEW</p>
+                    <h1>Hospital Bill Analyzer</h1>
+                    <p>
+                        Organize a medical bill, understand its costs, and
+                        review unusual billing entries.
+                    </p>
+                </div>
+
+                <div class="bill-status">
+                    <span class="status-dot"></span>
+                    <span id="billStatus">No bill loaded</span>
+                </div>
+            </section>
+
+            <!-- ================= DASHBOARD ================= -->
+
+            <section id="dashboard" class="section">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-number">01</span>
+                        <div>
+                            <h2>Dashboard</h2>
+                            <p>Quick overview of the current bill.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <article class="stat-card">
+                        <span class="stat-label">Total bill</span>
+                        <strong id="dashboardTotal">Rs. 0.00</strong>
+                        <small>Current bill total</small>
+                    </article>
+
+                    <article class="stat-card">
+                        <span class="stat-label">Items</span>
+                        <strong id="dashboardItems">0</strong>
+                        <small>Bill entries</small>
+                    </article>
+
+                    <article class="stat-card">
+                        <span class="stat-label">Items to review</span>
+                        <strong id="dashboardFlags">0</strong>
+                        <small>Potential concerns</small>
+                    </article>
+
+                    <article class="stat-card">
+                        <span class="stat-label">Highest item</span>
+                        <strong id="dashboardHighest">Rs. 0.00</strong>
+                        <small id="dashboardHighestName">No items yet</small>
+                    </article>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- PRICE BREAKDOWN -->
+
+                    <article class="panel chart-panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Bill breakdown</h3>
+                                <p>How the total bill is distributed.</p>
+                            </div>
+                        </div>
+
+                        <div class="chart-area">
+                            <div class="donut-wrapper">
+                                <svg
+                                    id="donutChart"
+                                    class="donut-chart"
+                                    viewBox="0 0 120 120"
+                                    aria-label="Bill breakdown chart"
+                                >
+                                    <circle
+                                        class="donut-track"
+                                        cx="60"
+                                        cy="60"
+                                        r="45"
+                                    ></circle>
+
+                                    <circle
+                                        id="donutProgress"
+                                        class="donut-progress"
+                                        cx="60"
+                                        cy="60"
+                                        r="45"
+                                    ></circle>
+                                </svg>
+
+                                <div class="donut-center">
+                                    <strong id="donutTotal">Rs. 0</strong>
+                                    <span>Total</span>
+                                </div>
+                            </div>
+
+                            <div class="chart-legend" id="chartLegend">
+                                <div class="empty-mini">
+                                    Add bill items to see the breakdown.
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- HIGHEST PRICED -->
+
+                    <article class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Highest priced items</h3>
+                                <p>Largest entries in this bill.</p>
+                            </div>
+                        </div>
+
+                        <div id="highestItems" class="highest-list">
+                            <div class="empty-state small">
+                                <div class="empty-icon">₨</div>
+                                <h4>No items yet</h4>
+                                <p>
+                                    Your highest priced items will appear here.
+                                </p>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- ================= BILL INFO ================= -->
+
+            <section id="bill-info" class="section">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-number">02</span>
+                        <div>
+                            <h2>Bill information</h2>
+                            <p>
+                                Enter the basic information printed on the bill.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="billInfoForm" class="panel form-panel">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="patientName">
+                                Patient / Customer name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="patientName"
+                                placeholder="e.g. Muhammad Hadi"
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label for="hospitalName">
+                                Hospital / Clinic
+                            </label>
+
+                            <input
+                                type="text"
+                                id="hospitalName"
+                                placeholder="e.g. City Hospital"
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label for="billNumber"> Bill number </label>
+
+                            <input
+                                type="text"
+                                id="billNumber"
+                                placeholder="e.g. INV-20481"
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label for="billDate"> Bill date </label>
+
+                            <input type="date" id="billDate" />
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="primary-btn">
+                            Save bill information
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- ================= ADD ITEMS ================= -->
+
+            <section id="items" class="section">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-number">03</span>
+                        <div>
+                            <h2>Bill items</h2>
+                            <p>
+                                Add every charge exactly as it appears on the
+                                bill.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="itemForm" class="panel item-form">
+                    <div class="item-form-grid">
+                        <div class="field item-description">
+                            <label for="itemDescription"> Description </label>
+
+                            <input
+                                type="text"
+                                id="itemDescription"
+                                placeholder="e.g. Complete Blood Count"
+                                required
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label for="itemCategory"> Category </label>
+
+                            <select id="itemCategory" required>
+                                <option value="">Select category</option>
+                                <option value="Consultation">
+                                    Consultation
+                                </option>
+                                <option value="Medicine">Medicine</option>
+                                <option value="Laboratory">Laboratory</option>
+                                <option value="Imaging">Imaging</option>
+                                <option value="Procedure">Procedure</option>
+                                <option value="Room">Room / Bed</option>
+                                <option value="Supplies">
+                                    Medical Supplies
+                                </option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="itemQuantity"> Quantity </label>
+
+                            <input
+                                type="number"
+                                id="itemQuantity"
+                                min="1"
+                                step="1"
+                                value="1"
+                                required
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label for="itemPrice"> Unit price (Rs.) </label>
+
+                            <input
+                                type="number"
+                                id="itemPrice"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div class="item-form-bottom">
+                        <div class="live-total">
+                            <span>Item total</span>
+                            <strong id="itemLiveTotal">Rs. 0.00</strong>
+                        </div>
+
+                        <button type="submit" class="primary-btn">
+                            + Add item
+                        </button>
+                    </div>
+                </form>
+
+                <!-- ITEMS TABLE -->
+
+                <div class="panel table-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Current bill items</h3>
+                            <p id="itemCountText">No items added.</p>
+                        </div>
+
+                        <button class="text-btn danger-text" id="clearItemsBtn">
+                            Clear all items
+                        </button>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Category</th>
+                                    <th>Qty.</th>
+                                    <th>Unit price</th>
+                                    <th>Total</th>
+                                    <th>Review</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="itemsTableBody"></tbody>
+                        </table>
+
+                        <div id="itemsEmpty" class="empty-state">
+                            <div class="empty-icon">+</div>
+
+                            <h4>No bill items</h4>
+
+                            <p>
+                                Add your first bill item above. Each item will
+                                automatically be included in the analysis.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="table-total">
+                        <span>Bill total</span>
+
+                        <strong id="tableTotal">Rs. 0.00</strong>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= ANALYSIS ================= -->
+
+            <section id="analysis" class="section">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-number">04</span>
+
+                        <div>
+                            <h2>Analysis</h2>
+
+                            <p>
+                                Automated checks for unusual billing patterns.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analysis-summary">
+                    <div class="analysis-count normal">
+                        <strong id="normalCount">0</strong>
+                        <span>Normal items</span>
+                    </div>
+
+                    <div class="analysis-count warning">
+                        <strong id="warningCount">0</strong>
+                        <span>Items to review</span>
+                    </div>
+
+                    <div class="analysis-count critical">
+                        <strong id="criticalCount">0</strong>
+                        <span>Important flags</span>
+                    </div>
+                </div>
+
+                <div id="analysisList" class="analysis-list">
+                    <div class="empty-state">
+                        <div class="empty-icon">✓</div>
+
+                        <h4>Nothing to analyze yet</h4>
+
+                        <p>
+                            Add bill items and BillCheck will look for
+                            potentially unusual entries.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="analysis-note">
+                    <strong>Important:</strong>
+
+                    These checks identify patterns that may deserve a second
+                    look. They do not prove that a charge is incorrect,
+                    fraudulent, or medically unnecessary.
+                </div>
+            </section>
+
+            <!-- ================= REPORT ================= -->
+
+            <section id="report" class="section report-section">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-number">05</span>
+
+                        <div>
+                            <h2>Report</h2>
+
+                            <p>Review and export the current bill.</p>
+                        </div>
+                    </div>
+
+                    <div class="report-actions">
+                        <button class="secondary-btn" id="csvBtn">
+                            Export CSV
+                        </button>
+
+                        <button class="primary-btn" id="printBtn">
+                            Print / Save PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel report-panel" id="printArea">
+                    <div class="report-header">
+                        <div>
+                            <span class="report-label"> BILLING REPORT </span>
+
+                            <h2 id="reportHospital">Hospital / Clinic</h2>
+
+                            <p id="reportPatient">Patient / Customer</p>
+                        </div>
+
+                        <div class="report-meta">
+                            <div>
+                                <span>Bill number</span>
+                                <strong id="reportBillNumber">—</strong>
+                            </div>
+
+                            <div>
+                                <span>Date</span>
+                                <strong id="reportDate">—</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-table-wrapper">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Description</th>
+                                    <th>Category</th>
+                                    <th>Qty.</th>
+                                    <th>Unit price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="reportTableBody"></tbody>
+                        </table>
+
+                        <div id="reportEmpty" class="empty-state report-empty">
+                            <div class="empty-icon">▤</div>
+
+                            <h4>No report available</h4>
+
+                            <p>Add bill items to generate the report.</p>
+                        </div>
+                    </div>
+
+                    <div class="report-total">
+                        <span>Total amount</span>
+
+                        <strong id="reportTotal"> Rs. 0.00 </strong>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= HISTORY ================= -->
+
+            <section id="history" class="section">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-number">06</span>
+
+                        <div>
+                            <h2>Bill history</h2>
+
+                            <p>Previously saved bills on this device.</p>
+                        </div>
+                    </div>
+
+                    <button class="text-btn danger-text" id="clearHistoryBtn">
+                        Clear history
+                    </button>
+                </div>
+
+                <div id="historyList" class="history-list">
+                    <div class="empty-state">
+                        <div class="empty-icon">◷</div>
+
+                        <h4>No saved bills</h4>
+
+                        <p>Saved bills will appear here.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= DISCLAIMER ================= -->
+
+            <section class="disclaimer">
+                <div class="disclaimer-icon">i</div>
+
+                <div>
+                    <strong>Billing Data Only</strong>
+
+                    <p>
+                        BillCheck is a billing organization and review tool. It
+                        does not diagnose medical conditions, recommend
+                        treatments, determine whether a medical service was
+                        necessary, or make legal or insurance decisions. A
+                        flagged item is only a suggestion to review the original
+                        bill or ask the provider for clarification.
+                    </p>
+                </div>
+            </section>
+        </main>
+
+        <!-- ================= FOOTER ================= -->
+
+        <footer class="footer">
+            <div>
+                <strong>BillCheck</strong>
+                <span>Hospital Bill Analyzer</span>
+            </div>
+
+            <p>Billing data only · No medical advice</p>
+        </footer>
+
+        <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+        <script src="script.js"></script>
+    </body>
+</html>
