@@ -1731,3 +1731,15 @@ td:first-child {
         width: 100%;
     }
 }
+
+.footer-btm {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    padding: 5px;
+    color: var(--text-muted);
+}
