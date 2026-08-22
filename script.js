@@ -2079,7 +2079,9 @@ function renderHistory() {
         return;
     }
 
-    const bills = getBills();
+    const bills = getBills().sort(function (a, b) {
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
 
     historyList.innerHTML = "";
 
@@ -2126,6 +2128,13 @@ function renderHistory() {
         const patient = bill.patientName || "No patient name";
 
         const billNumber = bill.billNumber || "No bill number";
+        const creationDate = bill.createdAt
+            ? new Date(bill.createdAt).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+              })
+            : "Unknown date";
 
         const items = Array.isArray(bill.items) ? bill.items : [];
 
@@ -2168,6 +2177,20 @@ function renderHistory() {
 
                         ${escapeHTML(patient)}
 
+                    </strong>
+
+                </div>
+
+                <div
+                    class="history-data"
+                >
+
+                    <span>
+                        Created
+                    </span>
+
+                    <strong>
+                        ${escapeHTML(creationDate)}
                     </strong>
 
                 </div>
@@ -2637,6 +2660,7 @@ function initializeApp() {
 
         User must click New Bill.
     */
+    createNewBill();
 
     updateItemLiveTotal();
 
