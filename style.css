@@ -163,6 +163,60 @@ a {
     color: var(--green);
 }
 
+/* ================= MOBILE MENU BUTTON (YE DALO) ================= */
+
+.menu-button {
+    display: none; /* desktop pe hidden */
+    width: 40px;
+    height: 40px;
+
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+
+    padding: 0;
+
+    background: transparent;
+    border: 1px solid var(--border-light);
+    cursor: pointer;
+}
+
+.menu-button span {
+    display: block;
+    width: 18px;
+    height: 2px;
+
+    background: var(--text-soft);
+
+    transition:
+        transform 180ms ease,
+        opacity 180ms ease,
+        background 180ms ease;
+}
+
+.menu-button:hover {
+    border-color: var(--text-soft);
+}
+
+.menu-button:hover span {
+    background: var(--text);
+}
+
+/* Jab menu khula ho to ☰ → X ban jaye */
+
+.menu-button.open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.menu-button.open span:nth-child(2) {
+    opacity: 0;
+}
+
+.menu-button.open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
 /* ================= CONTAINER ================= */
 
 .container {
@@ -1303,6 +1357,42 @@ td:first-child {
         display: none;
     }
 
+    /* ===== MOBILE DROPDOWN (YE DALO) ===== */
+
+    .menu-button {
+        display: flex;
+    }
+
+    .new-bill-btn {
+        margin-left: auto;
+    }
+
+    .nav-links.open {
+        display: flex;
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        z-index: 99;
+
+        flex-direction: column;
+        align-items: stretch;
+        gap: 2px;
+        margin-left: 0;
+
+        padding: 10px 20px 16px;
+
+        background: rgba(11, 13, 15, 0.98);
+        border-bottom: 1px solid var(--border);
+
+        backdrop-filter: blur(12px);
+    }
+
+    .nav-links.open a {
+        padding: 13px 12px;
+        font-size: 14px;
+    }
+
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -1325,6 +1415,10 @@ td:first-child {
 }
 
 @media (max-width: 700px) {
+    .nav-links.open {
+        top: 62px;
+    }
+
     .container,
     .nav-inner,
     .footer {

@@ -2211,12 +2211,20 @@ const nav = document.querySelector(".nav-links");
 
 if (menuButton && nav) {
     menuButton.addEventListener("click", function () {
-        nav.classList.toggle("open");
+        const isOpen = nav.classList.toggle("open");
+
+        menuButton.classList.toggle("open", isOpen);
+
+        menuButton.setAttribute("aria-expanded", String(isOpen));
     });
 
     nav.addEventListener("click", function (event) {
         if (event.target.tagName === "A") {
             nav.classList.remove("open");
+
+            menuButton.classList.remove("open");
+
+            menuButton.setAttribute("aria-expanded", "false");
         }
     });
 }
