@@ -2222,22 +2222,6 @@ if (printBtn) {
     });
 }
 
-function updateBillStatus() {
-    if (!billStatus || !statusDot) {
-        return;
-    }
-
-    if (currentBillId !== null) {
-        billStatus.textContent = "Bill in progress";
-
-        statusDot.classList.add("loaded");
-    } else {
-        billStatus.textContent = "No bill loaded";
-
-        statusDot.classList.remove("loaded");
-    }
-}
-
 const navLinks = document.querySelectorAll(".nav-links a");
 
 window.addEventListener("scroll", function () {

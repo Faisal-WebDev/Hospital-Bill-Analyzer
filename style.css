@@ -264,26 +264,6 @@ a {
     font-size: 15px;
 }
 
-.bill-status {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-
-    color: var(--text-muted);
-    font-size: 13px;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-
-    background: var(--text-muted);
-}
-
-.status-dot.loaded {
-    background: var(--green);
-}
-
 /* ================= SECTIONS ================= */
 
 .section {
