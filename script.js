@@ -1,12 +1,3 @@
-/* =========================================================
-   HOSPITAL BILL ANALYZER
-   COMPLETE SCRIPT.JS
-========================================================= */
-
-/* =========================================================
-   1. STORAGE
-========================================================= */
-
 const STORAGE_KEY = "hospitalBillAnalyzer_bills";
 
 function getBills() {
@@ -22,10 +13,6 @@ function getBills() {
 function saveBills(bills) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(bills));
 }
-
-/* =========================================================
-   2. CURRENT BILL
-========================================================= */
 
 let currentBillId = null;
 
@@ -43,17 +30,7 @@ let currentBill = {
     updatedAt: "",
 };
 
-/* =========================================================
-   3. ITEM EDIT STATE
-========================================================= */
-
 let editingItemIndex = null;
-
-/* =========================================================
-   4. DOM ELEMENTS
-========================================================= */
-
-/* ---------- Bill Information ---------- */
 
 const billInfoForm = document.getElementById("billInfoForm");
 
@@ -64,8 +41,6 @@ const hospitalNameInput = document.getElementById("hospitalName");
 const billNumberInput = document.getElementById("billNumber");
 
 const billDateInput = document.getElementById("billDate");
-
-/* ---------- Item Form ---------- */
 
 const itemForm = document.getElementById("itemForm");
 
@@ -79,8 +54,6 @@ const itemPriceInput = document.getElementById("itemPrice");
 
 const itemLiveTotal = document.getElementById("itemLiveTotal");
 
-/* ---------- Items ---------- */
-
 const itemsTableBody = document.getElementById("itemsTableBody");
 
 const itemsEmpty = document.getElementById("itemsEmpty");
@@ -88,8 +61,6 @@ const itemsEmpty = document.getElementById("itemsEmpty");
 const itemCountText = document.getElementById("itemCountText");
 
 const tableTotal = document.getElementById("tableTotal");
-
-/* ---------- Dashboard ---------- */
 
 const dashboardTotal = document.getElementById("dashboardTotal");
 
@@ -101,19 +72,13 @@ const dashboardHighest = document.getElementById("dashboardHighest");
 
 const dashboardHighestName = document.getElementById("dashboardHighestName");
 
-/* ---------- Chart ---------- */
-
 const donutProgress = document.getElementById("donutProgress");
 
 const donutTotal = document.getElementById("donutTotal");
 
 const chartLegend = document.getElementById("chartLegend");
 
-/* ---------- Highest Items ---------- */
-
 const highestItems = document.getElementById("highestItems");
-
-/* ---------- Analysis ---------- */
 
 const analysisList = document.getElementById("analysisList");
 
@@ -122,8 +87,6 @@ const normalCount = document.getElementById("normalCount");
 const warningCount = document.getElementById("warningCount");
 
 const criticalCount = document.getElementById("criticalCount");
-
-/* ---------- Report ---------- */
 
 const reportHospital = document.getElementById("reportHospital");
 
@@ -139,11 +102,7 @@ const reportEmpty = document.getElementById("reportEmpty");
 
 const reportTotal = document.getElementById("reportTotal");
 
-/* ---------- History ---------- */
-
 const historyList = document.getElementById("historyList");
-
-/* ---------- Buttons ---------- */
 
 const newBillBtn = document.getElementById("newBillBtn");
 
@@ -155,19 +114,11 @@ const csvBtn = document.getElementById("csvBtn");
 
 const printBtn = document.getElementById("printBtn");
 
-/* ---------- Status ---------- */
-
 const billStatus = document.getElementById("billStatus");
 
 const statusDot = document.querySelector(".status-dot");
 
-/* ---------- Toast ---------- */
-
 const toast = document.getElementById("toast");
-
-/* =========================================================
-   5. HELPER FUNCTIONS
-========================================================= */
 
 function formatMoney(amount) {
     const number = Number(amount) || 0;
@@ -244,23 +195,6 @@ function getCurrentBillTotal() {
     }, 0);
 }
 
-/* =========================================================
-   6. CREATE NEW BILL
-========================================================= */
-
-/*
-    IMPORTANT:
-
-    This is the ONLY function that creates
-    a NEW bill ID.
-
-    It does NOT immediately save an empty
-    bill into history.
-
-    The bill enters history when the user
-    clicks "Save Bill Info".
-*/
-
 function createNewBill() {
     const id = Date.now();
 
@@ -293,22 +227,6 @@ function createNewBill() {
     showToast("New bill started.");
 }
 
-/* =========================================================
-   7. SAVE CURRENT BILL
-========================================================= */
-
-/*
-    If the bill does NOT exist in localStorage:
-
-        ADD IT
-
-    If it already exists:
-
-        UPDATE IT
-
-    This prevents duplicate bills.
-*/
-
 function saveCurrentBill() {
     if (!currentBillId) {
         showToast("Click 'New Bill' first.");
@@ -325,23 +243,11 @@ function saveCurrentBill() {
     });
 
     if (existingIndex === -1) {
-        /*
-            First save.
-
-            Add the bill.
-        */
-
         bills.unshift({
             ...currentBill,
             items: [...(currentBill.items || [])],
         });
     } else {
-        /*
-            Existing bill.
-
-            UPDATE the same bill.
-        */
-
         bills[existingIndex] = {
             ...currentBill,
 
@@ -355,10 +261,6 @@ function saveCurrentBill() {
 
     updateBillStatus();
 }
-
-/* =========================================================
-   8. LOAD BILL FROM HISTORY
-========================================================= */
 
 function loadBill(id) {
     const bills = getBills();
@@ -399,22 +301,9 @@ function loadBill(id) {
         updatedAt: bill.updatedAt || "",
     };
 
-    /*
-        Put saved information
-        back into the input fields.
-    */
-
     loadCurrentBillIntoForm();
 
-    /*
-        Re-render the entire application.
-    */
-
     updateEverything();
-
-    /*
-        Go to Bill Information.
-    */
 
     const billSection = document.getElementById("bill-info");
 
@@ -426,10 +315,6 @@ function loadBill(id) {
 
     showToast("Bill opened. You can edit it now.");
 }
-
-/* =========================================================
-   9. LOAD CURRENT BILL INTO INPUTS
-========================================================= */
 
 function loadCurrentBillIntoForm() {
     if (patientNameInput) {
@@ -449,10 +334,6 @@ function loadCurrentBillIntoForm() {
     }
 }
 
-/* =========================================================
-   10. DELETE BILL
-========================================================= */
-
 function deleteBill(id) {
     const confirmed = confirm("Are you sure you want to delete this bill?");
 
@@ -467,11 +348,6 @@ function deleteBill(id) {
     });
 
     saveBills(bills);
-
-    /*
-        If the currently open bill
-        was deleted, clear it.
-    */
 
     if (Number(currentBillId) === Number(id)) {
         currentBillId = null;
@@ -502,27 +378,15 @@ function deleteBill(id) {
     showToast("Bill deleted.");
 }
 
-/* =========================================================
-   11. BILL INFORMATION SAVE
-========================================================= */
-
 if (billInfoForm) {
     billInfoForm.addEventListener("submit", function (event) {
         event.preventDefault();
-
-        /*
-                User must start a bill first.
-            */
 
         if (!currentBillId) {
             showToast("Click 'New Bill' first.");
 
             return;
         }
-
-        /*
-                Update current bill data.
-            */
 
         currentBill.patientName = patientNameInput
             ? patientNameInput.value.trim()
@@ -538,13 +402,6 @@ if (billInfoForm) {
 
         currentBill.billDate = billDateInput ? billDateInput.value : "";
 
-        /*
-                Save to localStorage.
-
-                Existing bill = UPDATE.
-                New bill = ADD.
-            */
-
         saveCurrentBill();
 
         updateEverything();
@@ -552,10 +409,6 @@ if (billInfoForm) {
         showToast("Bill information saved.");
     });
 }
-
-/* =========================================================
-   12. ITEM LIVE TOTAL
-========================================================= */
 
 function updateItemLiveTotal() {
     if (!itemQuantityInput || !itemPriceInput || !itemLiveTotal) {
@@ -577,19 +430,9 @@ if (itemPriceInput) {
     itemPriceInput.addEventListener("input", updateItemLiveTotal);
 }
 
-/* =========================================================
-   13. ADD NEW ITEM
-========================================================= */
-
 if (itemForm) {
     itemForm.addEventListener("submit", function (event) {
         event.preventDefault();
-
-        /*
-                Do NOT create a bill automatically here.
-
-                User must click New Bill first.
-            */
 
         if (!currentBillId) {
             showToast("Click 'New Bill' first.");
@@ -608,8 +451,6 @@ if (itemForm) {
         );
 
         const price = Number(itemPriceInput ? itemPriceInput.value : 0);
-
-        /* ---------- Validation ---------- */
 
         if (!description) {
             showToast("Enter an item description.");
@@ -651,10 +492,6 @@ if (itemForm) {
             return;
         }
 
-        /*
-                Create the new item.
-            */
-
         const item = {
             id: Date.now() + Math.floor(Math.random() * 1000),
 
@@ -669,23 +506,9 @@ if (itemForm) {
             total: quantity * price,
         };
 
-        /*
-                Add item to CURRENT bill.
-
-                This does NOT create another bill.
-            */
-
         currentBill.items.push(item);
 
-        /*
-                Save SAME bill.
-            */
-
         saveCurrentBill();
-
-        /*
-                Clear item form.
-            */
 
         itemForm.reset();
 
@@ -701,14 +524,8 @@ if (itemForm) {
     });
 }
 
-/* =========================================================
-   14. ANALYSIS
-========================================================= */
-
 function analyzeItem(item, index) {
     const issues = [];
-
-    /* ---------- Invalid price ---------- */
 
     if (Number(item.price) <= 0) {
         issues.push({
@@ -719,8 +536,6 @@ function analyzeItem(item, index) {
             message: "This item has a zero or invalid unit price.",
         });
     }
-
-    /* ---------- Duplicate item ---------- */
 
     const duplicate = currentBill.items.some(function (other, otherIndex) {
         if (otherIndex === index) {
@@ -753,8 +568,6 @@ function analyzeItem(item, index) {
         });
     }
 
-    /* ---------- High quantity ---------- */
-
     if (Number(item.quantity) >= 10) {
         issues.push({
             type: "warning",
@@ -767,8 +580,6 @@ function analyzeItem(item, index) {
                 ". Verify that it matches the original bill.",
         });
     }
-
-    /* ---------- High price ---------- */
 
     if (currentBill.items.length >= 3) {
         const prices = currentBill.items
@@ -798,8 +609,6 @@ function analyzeItem(item, index) {
         }
     }
 
-    /* ---------- Large bill share ---------- */
-
     const billTotal = getCurrentBillTotal();
 
     if (billTotal > 0 && Number(item.total) / billTotal >= 0.5) {
@@ -815,10 +624,6 @@ function analyzeItem(item, index) {
 
     return issues;
 }
-
-/* =========================================================
-   15. ITEM STATUS
-========================================================= */
 
 function getItemStatus(item, index) {
     const issues = analyzeItem(item, index);
@@ -837,10 +642,6 @@ function getItemStatus(item, index) {
 
     return "normal";
 }
-
-/* =========================================================
-   16. RENDER CURRENT BILL ITEMS
-========================================================= */
 
 function renderItems() {
     if (!itemsTableBody) {
@@ -955,10 +756,6 @@ function renderItems() {
     }
 }
 
-/* =========================================================
-   17. DELETE ITEM
-========================================================= */
-
 function deleteItem(index) {
     if (
         !Number.isInteger(index) ||
@@ -978,20 +775,12 @@ function deleteItem(index) {
 
     currentBill.items.splice(index, 1);
 
-    /*
-        Save SAME bill.
-    */
-
     saveCurrentBill();
 
     updateEverything();
 
     showToast("Item deleted.");
 }
-
-/* =========================================================
-   18. ITEM TABLE BUTTON HANDLER
-========================================================= */
 
 if (itemsTableBody) {
     itemsTableBody.addEventListener("click", function (event) {
@@ -1009,10 +798,6 @@ if (itemsTableBody) {
             return;
         }
 
-        /*
-                DELETE
-            */
-
         const deleteButton = event.target.closest(".delete-item");
 
         if (deleteButton) {
@@ -1022,10 +807,6 @@ if (itemsTableBody) {
         }
     });
 }
-
-/* =========================================================
-   19. CLEAR ITEMS
-========================================================= */
 
 if (clearItemsBtn) {
     clearItemsBtn.addEventListener("click", function () {
@@ -1051,15 +832,7 @@ if (clearItemsBtn) {
     });
 }
 
-/* =========================================================
-   20. ITEM EDIT MODAL
-========================================================= */
-
 function createEditItemModal() {
-    /*
-        Don't create the modal twice.
-    */
-
     if (document.getElementById("editItemModal")) {
         return;
     }
@@ -1282,19 +1055,11 @@ function createEditItemModal() {
 
     document.body.appendChild(modal);
 
-    /*
-        Close button.
-    */
-
     const closeButton = document.getElementById("closeEditItem");
 
     if (closeButton) {
         closeButton.addEventListener("click", closeEditItemModal);
     }
-
-    /*
-        Cancel button.
-    */
 
     const cancelButton = document.getElementById("cancelEditItem");
 
@@ -1302,19 +1067,11 @@ function createEditItemModal() {
         cancelButton.addEventListener("click", closeEditItemModal);
     }
 
-    /*
-        Click outside modal.
-    */
-
     const overlay = modal.querySelector(".edit-item-overlay");
 
     if (overlay) {
         overlay.addEventListener("click", closeEditItemModal);
     }
-
-    /*
-        Live total.
-    */
 
     const editQuantity = document.getElementById("editItemQuantity");
 
@@ -1328,20 +1085,12 @@ function createEditItemModal() {
         editPrice.addEventListener("input", updateEditItemTotal);
     }
 
-    /*
-        Save edited item.
-    */
-
     const editForm = document.getElementById("editItemForm");
 
     if (editForm) {
         editForm.addEventListener("submit", saveEditedItem);
     }
 }
-
-/* =========================================================
-   21. OPEN ITEM EDIT MODAL
-========================================================= */
 
 function openEditItemModal(index) {
     if (
@@ -1355,10 +1104,6 @@ function openEditItemModal(index) {
     }
 
     editingItemIndex = index;
-
-    /*
-        Create modal if it doesn't exist.
-    */
 
     createEditItemModal();
 
@@ -1403,10 +1148,6 @@ function openEditItemModal(index) {
     }, 100);
 }
 
-/* =========================================================
-   22. UPDATE EDIT ITEM TOTAL
-========================================================= */
-
 function updateEditItemTotal() {
     const quantityInput = document.getElementById("editItemQuantity");
 
@@ -1424,10 +1165,6 @@ function updateEditItemTotal() {
 
     totalElement.textContent = formatMoney(quantity * price);
 }
-
-/* =========================================================
-   23. SAVE EDITED ITEM
-========================================================= */
 
 function saveEditedItem(event) {
     event.preventDefault();
@@ -1460,8 +1197,6 @@ function saveEditedItem(event) {
 
     const price = Number(priceInput ? priceInput.value : 0);
 
-    /* ---------- Validation ---------- */
-
     if (!description) {
         showToast("Enter a description.");
 
@@ -1486,14 +1221,6 @@ function saveEditedItem(event) {
         return;
     }
 
-    /*
-        IMPORTANT:
-
-        Update the EXISTING item.
-
-        Do NOT push a new item.
-    */
-
     item.description = description;
 
     item.category = category;
@@ -1504,31 +1231,14 @@ function saveEditedItem(event) {
 
     item.total = quantity * price;
 
-    /*
-        Save the SAME BILL.
-    */
-
     saveCurrentBill();
 
-    /*
-        Update all dashboard/report/
-        analysis/table values.
-    */
-
     updateEverything();
-
-    /*
-        Close modal.
-    */
 
     closeEditItemModal();
 
     showToast("Item updated successfully.");
 }
-
-/* =========================================================
-   24. CLOSE ITEM EDIT MODAL
-========================================================= */
 
 function closeEditItemModal() {
     const modal = document.getElementById("editItemModal");
@@ -1541,10 +1251,6 @@ function closeEditItemModal() {
 
     editingItemIndex = null;
 }
-
-/* =========================================================
-   25. RENDER ANALYSIS
-========================================================= */
 
 function renderAnalysis() {
     if (!analysisList) {
@@ -1727,10 +1433,6 @@ function renderAnalysis() {
     }
 }
 
-/* =========================================================
-   26. DASHBOARD
-========================================================= */
-
 function renderDashboard() {
     const total = getCurrentBillTotal();
 
@@ -1787,10 +1489,6 @@ function renderDashboard() {
 
     renderHighestItems();
 }
-
-/* =========================================================
-   27. DONUT CHART
-========================================================= */
 
 function renderDonut() {
     if (!donutProgress || !chartLegend) {
@@ -1888,10 +1586,6 @@ function renderDonut() {
     });
 }
 
-/* =========================================================
-   28. HIGHEST PRICED ITEMS
-========================================================= */
-
 function renderHighestItems() {
     if (!highestItems) {
         return;
@@ -1984,10 +1678,6 @@ function renderHighestItems() {
     });
 }
 
-/* =========================================================
-   29. REPORT
-========================================================= */
-
 function renderReport() {
     if (reportHospital) {
         reportHospital.textContent =
@@ -2069,10 +1759,6 @@ function renderReport() {
         reportTotal.textContent = formatMoney(getCurrentBillTotal());
     }
 }
-
-/* =========================================================
-   30. BILL HISTORY
-========================================================= */
 
 function renderHistory() {
     if (!historyList) {
@@ -2265,10 +1951,6 @@ function renderHistory() {
     });
 }
 
-/* =========================================================
-   31. HISTORY BUTTONS
-========================================================= */
-
 if (historyList) {
     historyList.addEventListener("click", function (event) {
         /*
@@ -2298,10 +1980,6 @@ if (historyList) {
         }
     });
 }
-
-/* =========================================================
-   32. CLEAR HISTORY
-========================================================= */
 
 if (clearHistoryBtn) {
     clearHistoryBtn.addEventListener("click", function () {
@@ -2351,10 +2029,6 @@ if (clearHistoryBtn) {
     });
 }
 
-/* =========================================================
-   33. NEW BILL BUTTON
-========================================================= */
-
 if (newBillBtn) {
     newBillBtn.addEventListener("click", function () {
         const hasCurrentData =
@@ -2386,10 +2060,6 @@ if (newBillBtn) {
         });
     });
 }
-
-/* =========================================================
-   34. CSV EXPORT
-========================================================= */
 
 function csvEscape(value) {
     const string = String(value ?? "");
@@ -2481,10 +2151,6 @@ if (csvBtn) {
     });
 }
 
-/* =========================================================
-   35. PRINT / PDF
-========================================================= */
-
 if (printBtn) {
     printBtn.addEventListener("click", function () {
         if (currentBill.items.length === 0) {
@@ -2493,20 +2159,9 @@ if (printBtn) {
             return;
         }
 
-        /*
-                Browser print dialog.
-
-                User can select:
-                Save as PDF
-            */
-
         window.print();
     });
 }
-
-/* =========================================================
-   36. BILL STATUS
-========================================================= */
 
 function updateBillStatus() {
     if (!billStatus || !statusDot) {
@@ -2523,10 +2178,6 @@ function updateBillStatus() {
         statusDot.classList.remove("loaded");
     }
 }
-
-/* =========================================================
-   37. NAVIGATION
-========================================================= */
 
 const navLinks = document.querySelectorAll(".nav-links a");
 
@@ -2554,10 +2205,6 @@ window.addEventListener("scroll", function () {
     });
 });
 
-/* =========================================================
-   38. MOBILE NAVIGATION
-========================================================= */
-
 const menuButton = document.querySelector(".menu-button");
 
 const nav = document.querySelector(".nav-links");
@@ -2574,16 +2221,7 @@ if (menuButton && nav) {
     });
 }
 
-/* =========================================================
-   39. KEYBOARD SHORTCUT
-========================================================= */
-
 document.addEventListener("keydown", function (event) {
-    /*
-            Ctrl + S
-            Save current bill.
-        */
-
     if (event.ctrlKey && event.key.toLowerCase() === "s") {
         event.preventDefault();
 
@@ -2592,11 +2230,6 @@ document.addEventListener("keydown", function (event) {
 
             return;
         }
-
-        /*
-                Read latest bill info
-                from inputs.
-            */
 
         if (patientNameInput) {
             currentBill.patientName = patientNameInput.value.trim();
@@ -2622,19 +2255,11 @@ document.addEventListener("keydown", function (event) {
     }
 });
 
-/* =========================================================
-   40. ESCAPE KEY
-========================================================= */
-
 document.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
         closeEditItemModal();
     }
 });
-
-/* =========================================================
-   41. UPDATE EVERYTHING
-========================================================= */
 
 function updateEverything() {
     renderItems();
@@ -2650,25 +2275,12 @@ function updateEverything() {
     updateBillStatus();
 }
 
-/* =========================================================
-   42. INITIALIZE APP
-========================================================= */
-
 function initializeApp() {
-    /*
-        Don't create a bill automatically.
-
-        User must click New Bill.
-    */
     createNewBill();
 
     updateItemLiveTotal();
 
     updateEverything();
 }
-
-/* =========================================================
-   START APPLICATION
-========================================================= */
 
 initializeApp();
