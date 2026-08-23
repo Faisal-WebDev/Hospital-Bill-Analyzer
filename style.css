@@ -448,9 +448,17 @@ a {
     stroke: var(--surface-3);
 }
 
-.donut-progress {
-    stroke: var(--green);
+.donut-track,
+.donut-segment {
+    fill: none;
+    stroke-width: 14;
+}
 
+.donut-track {
+    stroke: var(--surface-3);
+}
+
+.donut-segment {
     stroke-linecap: butt;
 
     transition:

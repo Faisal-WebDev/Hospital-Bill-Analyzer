@@ -72,7 +72,7 @@ const dashboardHighest = document.getElementById("dashboardHighest");
 
 const dashboardHighestName = document.getElementById("dashboardHighestName");
 
-const donutProgress = document.getElementById("donutProgress");
+const donutSegments = document.getElementById("donutSegments");
 
 const donutTotal = document.getElementById("donutTotal");
 
@@ -119,6 +119,22 @@ const billStatus = document.getElementById("billStatus");
 const statusDot = document.querySelector(".status-dot");
 
 const toast = document.getElementById("toast");
+
+const CATEGORY_COLORS = {
+    Consultation: "#00ff66" /* green  */,
+    Medicine: "#007bff" /* blue   */,
+    Laboratory: "#ffb300" /* yellow */,
+    Imaging: "#6200ff" /* purple */,
+    Procedure: "#ff5900" /* orange */,
+    Surgery: "#ff0000" /* red    */,
+    Room: "#00ffe5" /* teal   */,
+    Supplies: "#ccff00" /* olive  */,
+    Other: "#535353" /* gray   */,
+};
+
+function getCategoryColor(category) {
+    return CATEGORY_COLORS[category] || "#8a949c";
+}
 
 function formatMoney(amount) {
     const number = Number(amount) || 0;
@@ -1491,36 +1507,27 @@ function renderDashboard() {
 }
 
 function renderDonut() {
-    if (!donutProgress || !chartLegend) {
+    if (!donutSegments || !chartLegend) {
         return;
     }
+
+    donutSegments.innerHTML = "";
 
     chartLegend.innerHTML = "";
 
     const total = getCurrentBillTotal();
 
-    const radius = 45;
-
-    const circumference = 2 * Math.PI * radius;
-
-    donutProgress.style.strokeDasharray = circumference;
-
-    donutProgress.style.strokeDashoffset = circumference;
-
     if (total === 0) {
         chartLegend.innerHTML = `
-
             <div class="empty-mini">
-
-                Add bill items to see
-                the price breakdown.
-
+                Add bill items to see the price breakdown.
             </div>
-
         `;
 
         return;
     }
+
+    /* ---------- Category-wise totals ---------- */
 
     const categories = {};
 
@@ -1534,17 +1541,75 @@ function renderDonut() {
         categories[category] += Number(item.total || 0);
     });
 
-    const sorted = Object.entries(categories)
-        .sort(function (a, b) {
-            return b[1] - a[1];
-        })
-        .slice(0, 5);
+    /* Sabse badi pehle */
 
-    const largest = sorted.length > 0 ? sorted[0][1] : 0;
+    const sorted = Object.entries(categories).sort(function (a, b) {
+        return b[1] - a[1];
+    });
 
-    const percentage = total > 0 ? largest / total : 0;
+    /* ---------- Asli donut math ----------
+       circumference = 2 × π × 45 ≈ 282.74
+       har category ko apne share ke barabar arc
+    ----------------------------------------- */
 
-    donutProgress.style.strokeDashoffset = circumference * (1 - percentage);
+    const radius = 45;
+
+    const circumference = 2 * Math.PI * radius;
+
+    const gap = 2; /* segments ke beech chhota gap */
+
+    let cumulative = 0;
+
+    sorted.forEach(function (entry) {
+        const category = entry[0];
+
+        const amount = entry[1];
+
+        const segmentLength = (amount / total) * circumference;
+
+        const visualLength = Math.max(segmentLength - gap, 1);
+
+        /* SVG namespace zaroori hai SVG ke andar element banane ke liye */
+
+        const circle = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "circle",
+        );
+
+        circle.setAttribute("cx", "60");
+        circle.setAttribute("cy", "60");
+        circle.setAttribute("r", "45");
+
+        circle.classList.add("donut-segment");
+
+        circle.style.stroke = getCategoryColor(category);
+
+        /* Kitna arc bharna hai */
+
+        circle.style.strokeDasharray =
+            visualLength + " " + (circumference - visualLength);
+
+        /* Kahan se shuru karna hai */
+
+        circle.style.strokeDashoffset = String(-(cumulative + gap / 2));
+
+        /* Hover pe category + amount dikhaye */
+
+        const title = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "title",
+        );
+
+        title.textContent = category + ": " + formatMoney(amount);
+
+        circle.appendChild(title);
+
+        donutSegments.appendChild(circle);
+
+        cumulative += segmentLength;
+    });
+
+    /* ---------- Legend: har category apne color ke saath ---------- */
 
     sorted.forEach(function (entry) {
         const category = entry[0];
@@ -1553,34 +1618,28 @@ function renderDonut() {
 
         const categoryPercentage = ((amount / total) * 100).toFixed(1);
 
+        const color = getCategoryColor(category);
+
         const div = document.createElement("div");
 
         div.className = "legend-item";
 
+        div.title = formatMoney(amount);
+
         div.innerHTML = `
-
+            <span class="legend-name">
                 <span
-                    class="legend-name"
-                >
+                    class="legend-marker"
+                    style="background: ${color}"
+                ></span>
 
-                    <span
-                        class="legend-marker"
-                    ></span>
+                ${escapeHTML(category)}
+            </span>
 
-                    ${escapeHTML(category)}
-
-                </span>
-
-
-                <span
-                    class="legend-value"
-                >
-
-                    ${categoryPercentage}%
-
-                </span>
-
-            `;
+            <span class="legend-value">
+                ${categoryPercentage}%
+            </span>
+        `;
 
         chartLegend.appendChild(div);
     });
