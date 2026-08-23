@@ -1156,28 +1156,28 @@ function createEditItemModal() {
                                 Consultation
                             </option>
 
-                            <option value="Lab">
-                                Laboratory
-                            </option>
-
                             <option value="Medicine">
                                 Medicine
                             </option>
 
-                            <option value="Room">
-                                Room
+                            <option value="Laboratory">
+                                Laboratory
+                            </option>
+
+                            <option value="Imaging">
+                                Imaging
                             </option>
 
                             <option value="Procedure">
                                 Procedure
                             </option>
 
-                            <option value="Surgery">
-                                Surgery
+                            <option value="Room / Bed">
+                                Room / Bed
                             </option>
 
-                            <option value="Imaging">
-                                Imaging
+                            <option value="Medical Supplies">
+                                Medical Supplies
                             </option>
 
                             <option value="Other">
