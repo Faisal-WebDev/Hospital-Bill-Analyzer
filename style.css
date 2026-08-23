@@ -139,8 +139,7 @@ a {
 
 .nav-links a:hover,
 .nav-links a.active {
-    color: var(--text);
-    background: var(--surface-2);
+    color: var(--green);
 }
 
 .new-bill-btn {
@@ -1374,6 +1373,11 @@ td:first-child {
         border-bottom: 1px solid var(--border);
 
         backdrop-filter: blur(12px);
+    }
+
+    .nav-links a:hover {
+        color: var(--text);
+        border: 1px solid var(--green);
     }
 
     .nav-links.open a {
