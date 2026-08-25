@@ -41,6 +41,386 @@ const hospitalNameInput = document.getElementById("hospitalName");
 const billNumberInput = document.getElementById("billNumber");
 
 const billDateInput = document.getElementById("billDate");
+const datePicker = document.getElementById("datePicker");
+
+const datePickerTrigger = document.getElementById("datePickerTrigger");
+
+const datePickerValue = document.getElementById("datePickerValue");
+
+const datePickerPreview = document.getElementById("datePickerPreview");
+
+const datePickerMonthWheel = document.getElementById("datePickerMonthWheel");
+
+const datePickerDayWheel = document.getElementById("datePickerDayWheel");
+
+const datePickerYearWheel = document.getElementById("datePickerYearWheel");
+
+const datePickerDone = document.getElementById("datePickerDone");
+
+let selectedPickerDate = null;
+let pickerScrollTimer = null;
+
+function getPickerDateParts(value) {
+    const today = getToday().split("-").map(Number);
+
+    const parts = /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""))
+        ? String(value).split("-").map(Number)
+        : today;
+
+    let year = Number(parts[0]);
+    let month = Number(parts[1]);
+    let day = Number(parts[2]);
+
+    if (!Number.isInteger(year) || year < 1) {
+        year = today[0];
+    }
+
+    if (!Number.isInteger(month)) {
+        month = today[1];
+    }
+
+    month = Math.min(Math.max(month, 1), 12);
+
+    const maxDay = new Date(year, month, 0).getDate();
+
+    if (!Number.isInteger(day)) {
+        day = today[2];
+    }
+
+    day = Math.min(Math.max(day, 1), maxDay);
+
+    return {
+        year: year,
+        month: month,
+        day: day,
+    };
+}
+
+function getPickerMonths() {
+    return Array.from({ length: 12 }, function (_, index) {
+        return {
+            value: index + 1,
+            label: new Date(2000, index, 1).toLocaleString("en-US", {
+                month: "long",
+            }),
+        };
+    });
+}
+
+function getPickerDays(year, month) {
+    const totalDays = new Date(year, month, 0).getDate();
+
+    return Array.from({ length: totalDays }, function (_, index) {
+        const day = index + 1;
+
+        return {
+            value: day,
+            label: String(day).padStart(2, "0"),
+        };
+    });
+}
+
+function getPickerYears(selectedYear) {
+    const currentYear = new Date().getFullYear();
+
+    const firstYear = Math.min(1900, selectedYear);
+
+    const lastYear = Math.max(currentYear + 10, selectedYear);
+
+    return Array.from(
+        {
+            length: lastYear - firstYear + 1,
+        },
+        function (_, index) {
+            const year = firstYear + index;
+
+            return {
+                value: year,
+                label: String(year),
+            };
+        },
+    );
+}
+
+function formatPickerDate(date) {
+    return new Date(date.year, date.month - 1, date.day).toLocaleDateString(
+        "en-GB",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        },
+    );
+}
+
+function highlightPickerWheel(wheel) {
+    if (!wheel || !wheel.children.length) {
+        return;
+    }
+
+    const selectedIndex = Math.min(
+        wheel.children.length - 1,
+        Math.max(0, Math.round(wheel.scrollTop / 42)),
+    );
+
+    Array.from(wheel.children).forEach(function (option, index) {
+        const selected = index === selectedIndex;
+
+        option.classList.toggle("selected", selected);
+
+        option.setAttribute("aria-selected", String(selected));
+    });
+}
+
+function fillPickerWheel(wheel, options, selectedValue) {
+    if (!wheel) {
+        return;
+    }
+
+    wheel.innerHTML = "";
+
+    options.forEach(function (option) {
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "date-wheel-option";
+
+        button.dataset.value = String(option.value);
+
+        button.textContent = option.label;
+
+        wheel.appendChild(button);
+    });
+
+    const selectedIndex = Math.max(
+        0,
+        options.findIndex(function (option) {
+            return Number(option.value) === Number(selectedValue);
+        }),
+    );
+
+    wheel.scrollTop = selectedIndex * 42;
+
+    highlightPickerWheel(wheel);
+}
+
+function updatePickerPreview() {
+    if (!selectedPickerDate || !datePickerPreview) {
+        return;
+    }
+
+    datePickerPreview.textContent = formatPickerDate(selectedPickerDate);
+}
+
+function renderPickerWheels() {
+    if (!selectedPickerDate) {
+        return;
+    }
+
+    const maxDay = new Date(
+        selectedPickerDate.year,
+        selectedPickerDate.month,
+        0,
+    ).getDate();
+
+    selectedPickerDate.day = Math.min(selectedPickerDate.day, maxDay);
+
+    fillPickerWheel(
+        datePickerMonthWheel,
+        getPickerMonths(),
+        selectedPickerDate.month,
+    );
+
+    fillPickerWheel(
+        datePickerDayWheel,
+        getPickerDays(selectedPickerDate.year, selectedPickerDate.month),
+        selectedPickerDate.day,
+    );
+
+    fillPickerWheel(
+        datePickerYearWheel,
+        getPickerYears(selectedPickerDate.year),
+        selectedPickerDate.year,
+    );
+
+    updatePickerPreview();
+}
+
+function syncPickerWheel(wheel) {
+    if (!wheel || !selectedPickerDate || !wheel.children.length) {
+        return;
+    }
+
+    const selectedIndex = Math.min(
+        wheel.children.length - 1,
+        Math.max(0, Math.round(wheel.scrollTop / 42)),
+    );
+
+    const option = wheel.children[selectedIndex];
+
+    if (!option) {
+        return;
+    }
+
+    const value = Number(option.dataset.value);
+
+    const oldMonth = selectedPickerDate.month;
+
+    const oldYear = selectedPickerDate.year;
+
+    if (wheel === datePickerMonthWheel) {
+        selectedPickerDate.month = value;
+    }
+
+    if (wheel === datePickerDayWheel) {
+        selectedPickerDate.day = value;
+    }
+
+    if (wheel === datePickerYearWheel) {
+        selectedPickerDate.year = value;
+    }
+
+    if (
+        oldMonth !== selectedPickerDate.month ||
+        oldYear !== selectedPickerDate.year
+    ) {
+        renderPickerWheels();
+    } else {
+        updatePickerPreview();
+    }
+
+    highlightPickerWheel(wheel);
+}
+
+function handlePickerScroll(event) {
+    const wheel = event.currentTarget;
+
+    highlightPickerWheel(wheel);
+
+    clearTimeout(pickerScrollTimer);
+
+    pickerScrollTimer = setTimeout(function () {
+        syncPickerWheel(wheel);
+    }, 90);
+}
+
+function handlePickerClick(event) {
+    const option = event.target.closest(".date-wheel-option");
+
+    if (!option) {
+        return;
+    }
+
+    const wheel = event.currentTarget;
+
+    const index = Array.prototype.indexOf.call(wheel.children, option);
+
+    wheel.scrollTop = index * 42;
+
+    syncPickerWheel(wheel);
+}
+
+function updateDatePickerLabel() {
+    if (!datePickerValue || !billDateInput) {
+        return;
+    }
+
+    if (!billDateInput.value) {
+        datePickerValue.textContent = "Select bill date";
+
+        return;
+    }
+
+    datePickerValue.textContent = formatPickerDate(
+        getPickerDateParts(billDateInput.value),
+    );
+}
+
+function openDatePicker() {
+    if (!datePicker || !billDateInput) {
+        return;
+    }
+
+    selectedPickerDate = getPickerDateParts(billDateInput.value || getToday());
+
+    renderPickerWheels();
+
+    datePicker.classList.add("open");
+
+    datePicker.setAttribute("aria-hidden", "false");
+
+    datePickerTrigger.setAttribute("aria-expanded", "true");
+
+    document.body.classList.add("date-picker-is-open");
+}
+
+function closeDatePicker() {
+    if (!datePicker) {
+        return;
+    }
+
+    datePicker.classList.remove("open");
+
+    datePicker.setAttribute("aria-hidden", "true");
+
+    if (datePickerTrigger) {
+        datePickerTrigger.setAttribute("aria-expanded", "false");
+    }
+
+    document.body.classList.remove("date-picker-is-open");
+}
+
+function savePickerDate() {
+    if (!selectedPickerDate || !billDateInput) {
+        closeDatePicker();
+        return;
+    }
+
+    billDateInput.value = [
+        selectedPickerDate.year,
+        String(selectedPickerDate.month).padStart(2, "0"),
+        String(selectedPickerDate.day).padStart(2, "0"),
+    ].join("-");
+
+    updateDatePickerLabel();
+    closeDatePicker();
+}
+
+if (datePickerTrigger) {
+    datePickerTrigger.addEventListener("click", openDatePicker);
+}
+
+if (datePickerDone) {
+    datePickerDone.addEventListener("click", savePickerDate);
+}
+
+if (datePicker) {
+    datePicker
+        .querySelectorAll("[data-date-picker-close]")
+        .forEach(function (button) {
+            button.addEventListener("click", closeDatePicker);
+        });
+}
+
+[datePickerMonthWheel, datePickerDayWheel, datePickerYearWheel].forEach(
+    function (wheel) {
+        if (!wheel) {
+            return;
+        }
+
+        wheel.addEventListener("scroll", handlePickerScroll);
+
+        wheel.addEventListener("click", handlePickerClick);
+    },
+);
+
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+        closeDatePicker();
+    }
+});
+
+updateDatePickerLabel();
 
 const itemForm = document.getElementById("itemForm");
 
@@ -349,6 +729,7 @@ function loadCurrentBillIntoForm() {
         billDateInput.value = currentBill.billDate || getToday();
     }
 }
+updateDatePickerLabel();
 
 function deleteBill(id) {
     const confirmed = confirm("Are you sure you want to delete this bill?");

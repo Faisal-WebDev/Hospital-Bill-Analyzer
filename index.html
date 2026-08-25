@@ -218,10 +218,102 @@
                             />
                         </div>
 
-                        <div class="field">
-                            <label for="billDate"> Bill date </label>
+                        <div class="field bill-date-field">
+                            <label for="billDate">Bill date</label>
 
-                            <input type="date" id="billDate" />
+                            <div class="custom-date-control">
+                                <input
+                                    type="date"
+                                    id="billDate"
+                                    class="date-input-native"
+                                    aria-hidden="true"
+                                    tabindex="-1"
+                                />
+
+                                <button
+                                    type="button"
+                                    class="date-picker-trigger"
+                                    id="datePickerTrigger"
+                                    aria-haspopup="dialog"
+                                    aria-expanded="false"
+                                >
+                                    <span id="datePickerValue"
+                                        >Select bill date</span
+                                    >
+                                    <span class="date-picker-calendar"></span>
+                                </button>
+                            </div>
+
+                            <div
+                                class="date-picker"
+                                id="datePicker"
+                                aria-hidden="true"
+                            >
+                                <div
+                                    class="date-picker-backdrop"
+                                    data-date-picker-close
+                                ></div>
+
+                                <div
+                                    class="date-picker-sheet"
+                                    role="dialog"
+                                    aria-modal="true"
+                                    aria-labelledby="datePickerTitle"
+                                >
+                                    <div class="date-picker-toolbar">
+                                        <button
+                                            type="button"
+                                            class="date-picker-action"
+                                            data-date-picker-close
+                                        >
+                                            Cancel
+                                        </button>
+
+                                        <strong id="datePickerTitle">
+                                            Bill date
+                                        </strong>
+
+                                        <button
+                                            type="button"
+                                            class="date-picker-action done"
+                                            id="datePickerDone"
+                                        >
+                                            Done
+                                        </button>
+                                    </div>
+
+                                    <div
+                                        class="date-picker-preview"
+                                        id="datePickerPreview"
+                                    >
+                                        Select bill date
+                                    </div>
+
+                                    <div class="date-picker-wheels">
+                                        <div
+                                            class="date-wheel"
+                                            id="datePickerMonthWheel"
+                                            tabindex="0"
+                                        ></div>
+
+                                        <div
+                                            class="date-wheel"
+                                            id="datePickerDayWheel"
+                                            tabindex="0"
+                                        ></div>
+
+                                        <div
+                                            class="date-wheel"
+                                            id="datePickerYearWheel"
+                                            tabindex="0"
+                                        ></div>
+                                    </div>
+
+                                    <p class="date-picker-help">
+                                        Swipe or tap to choose a date
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
