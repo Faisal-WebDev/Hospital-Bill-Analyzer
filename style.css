@@ -16,10 +16,10 @@
     --green: rgb(41, 215, 41);
     --green-dark: #095029;
 
-    --yellow: #e5bd63;
+    --yellow: #e4a30c;
     --yellow-dark: #3a301b;
 
-    --red: #ef7777;
+    --red: #dd1212;
     --red-dark: #3c2020;
 
     --blue: #76aee8;
@@ -129,7 +129,7 @@ a {
 .nav-links a {
     padding: 8px 11px;
 
-    color: var(--text-muted);
+    color: var(--text);
     font-size: 13px;
 
     transition:
@@ -139,8 +139,7 @@ a {
 
 .nav-links a:hover,
 .nav-links a.active {
-    color: var(--text);
-    background: var(--surface-2);
+    color: var(--green);
 }
 
 .new-bill-btn {
@@ -770,7 +769,7 @@ tbody tr {
 }
 
 tbody tr:hover {
-    background: #15191c;
+    background: #a4a4a4;
 }
 
 td:first-child {
@@ -1363,6 +1362,12 @@ td:first-child {
 @media (max-width: 1050px) {
     .nav-links {
         display: none;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:active {
+        border: 1px solid var(--green);
+        color: var(--text);
     }
 
     /* ===== MOBILE DROPDOWN (YE DALO) ===== */
@@ -2011,6 +2016,7 @@ body.date-picker-is-open {
 
     font-size: 14px;
     font-weight: 600;
+    justify-self: start;
 }
 
 .date-picker-action.done {
