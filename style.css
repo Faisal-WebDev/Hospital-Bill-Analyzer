@@ -769,7 +769,7 @@ tbody tr {
 }
 
 tbody tr:hover {
-    background: #a4a4a4;
+    background: var(--surface-2);
 }
 
 td:first-child {
@@ -2345,4 +2345,193 @@ body.date-picker-is-open {
     .confirm-modal-actions button {
         width: 100%;
     }
+}
+
+/* ================================
+   REVIEWER MODAL
+================================ */
+
+.reviewer-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+.reviewer-modal.open {
+    display: flex;
+}
+
+.reviewer-overlay {
+    position: absolute;
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.72);
+}
+
+.reviewer-dialog {
+    position: relative;
+    z-index: 1;
+
+    width: min(520px, 100%);
+
+    background: #111;
+
+    border: 1px solid #333;
+
+    padding: 32px;
+
+    box-sizing: border-box;
+}
+
+.reviewer-close {
+    position: absolute;
+
+    top: 12px;
+    right: 12px;
+
+    width: 36px;
+    height: 36px;
+
+    border: 1px solid #333;
+
+    background: transparent;
+
+    color: #fff;
+
+    font-size: 24px;
+
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reviewer-close:hover {
+    border-color: #666;
+}
+
+.reviewer-content {
+    text-align: center;
+}
+
+.reviewer-icon {
+    width: 42px;
+    height: 42px;
+
+    margin: 0 auto 18px;
+
+    border: 1px solid #ffb300;
+
+    color: #ffb300;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 700;
+}
+
+.reviewer-content h3 {
+    margin: 0 0 10px;
+
+    color: #fff;
+
+    font-size: 22px;
+}
+
+.reviewer-item-name {
+    margin: 0 0 14px;
+
+    color: #fff;
+
+    font-weight: 600;
+}
+
+.reviewer-message {
+    margin: 0 auto 18px;
+
+    max-width: 420px;
+
+    color: #aaa;
+
+    line-height: 1.6;
+}
+
+.reviewer-note {
+    margin: 0 0 24px;
+
+    color: #777;
+
+    font-size: 13px;
+}
+
+.reviewer-confirm {
+    width: 100%;
+
+    padding: 12px 18px;
+
+    border: 1px solid #00ff66;
+
+    background: #00ff66;
+
+    color: #000;
+
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.reviewer-confirm:hover {
+    background: #00d957;
+}
+
+body.reviewer-modal-open {
+    overflow: hidden;
+}
+
+/* ================================
+   CLICKABLE ANALYSIS ITEMS
+================================ */
+
+.analysis-item.warning,
+.analysis-item.critical {
+    cursor: pointer;
+}
+
+.analysis-item.warning:hover,
+.analysis-item.critical:hover {
+    border-color: #666;
+}
+
+@media (max-width: 600px) {
+    .reviewer-modal {
+        padding: 14px;
+    }
+
+    .reviewer-dialog {
+        padding: 26px 20px 20px;
+    }
+
+    .reviewer-content h3 {
+        font-size: 19px;
+    }
+}
+
+.analysis-reviewed {
+    display: block;
+
+    margin-top: 5px;
+
+    color: #00ff66;
+
+    font-size: 12px;
+
+    font-weight: 600;
 }

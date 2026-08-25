@@ -1027,6 +1027,10 @@ function analyzeItem(item, index) {
 }
 
 function getItemStatus(item, index) {
+    if (item.reviewed) {
+        return "normal";
+    }
+
     const issues = analyzeItem(item, index);
 
     const critical = issues.some(function (issue) {
@@ -1085,11 +1089,11 @@ function renderItems() {
 
         let statusText = "Normal";
 
-        if (status === "warning") {
+        if (item.reviewed) {
+            statusText = "Reviewed";
+        } else if (status === "warning") {
             statusText = "Review";
-        }
-
-        if (status === "critical") {
+        } else if (status === "critical") {
             statusText = "Important";
         }
 
@@ -1653,6 +1657,165 @@ function closeEditItemModal() {
     editingItemIndex = null;
 }
 
+let reviewingItemIndex = null;
+let reviewingIssue = null;
+
+function createReviewerModal() {
+    if (document.getElementById("reviewerModal")) {
+        return;
+    }
+
+    const modal = document.createElement("div");
+
+    modal.id = "reviewerModal";
+    modal.className = "reviewer-modal";
+
+    modal.innerHTML = `
+        <div class="reviewer-overlay"></div>
+
+        <div class="reviewer-dialog">
+
+            <button
+                type="button"
+                class="reviewer-close"
+                id="reviewerClose"
+                aria-label="Close reviewer"
+            >
+                ×
+            </button>
+
+            <div class="reviewer-content">
+
+                <div class="reviewer-icon">
+                    !
+                </div>
+
+                <h3>
+                    Review Bill Item
+                </h3>
+
+                <p class="reviewer-item-name" id="reviewerItemName">
+                    —
+                </p>
+
+                <p class="reviewer-message" id="reviewerMessage">
+                    —
+                </p>
+
+                <p class="reviewer-note">
+                    Reviewed against the original bill.
+                </p>
+
+                <button
+                    type="button"
+                    class="reviewer-confirm"
+                    id="reviewerConfirm"
+                >
+                    Reviewed
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeButton = document.getElementById("reviewerClose");
+
+    if (closeButton) {
+        closeButton.addEventListener("click", closeReviewerModal);
+    }
+
+    const overlay = modal.querySelector(".reviewer-overlay");
+
+    if (overlay) {
+        overlay.addEventListener("click", closeReviewerModal);
+    }
+
+    const confirmButton = document.getElementById("reviewerConfirm");
+
+    if (confirmButton) {
+        confirmButton.addEventListener("click", confirmReviewer);
+    }
+}
+
+function openReviewerModal(index, issue) {
+    if (
+        !currentBill ||
+        !Array.isArray(currentBill.items) ||
+        !currentBill.items[index]
+    ) {
+        return;
+    }
+
+    reviewingItemIndex = index;
+    reviewingIssue = issue;
+
+    createReviewerModal();
+
+    const item = currentBill.items[index];
+
+    const itemName = document.getElementById("reviewerItemName");
+    const message = document.getElementById("reviewerMessage");
+
+    if (itemName) {
+        itemName.textContent = item.description;
+    }
+
+    if (message) {
+        message.textContent = issue.message;
+    }
+
+    const modal = document.getElementById("reviewerModal");
+
+    if (modal) {
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+    }
+
+    document.body.classList.add("reviewer-modal-open");
+}
+
+function closeReviewerModal() {
+    const modal = document.getElementById("reviewerModal");
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+
+    document.body.classList.remove("reviewer-modal-open");
+
+    reviewingItemIndex = null;
+    reviewingIssue = null;
+}
+
+function confirmReviewer() {
+    if (reviewingItemIndex === null) {
+        return;
+    }
+
+    const item = currentBill.items[reviewingItemIndex];
+
+    if (!item) {
+        closeReviewerModal();
+        return;
+    }
+
+    item.reviewed = true;
+
+    saveCurrentBill();
+
+    closeReviewerModal();
+
+    updateEverything();
+
+    showToast("Item marked as reviewed.");
+}
+
 function renderAnalysis() {
     if (!analysisList) {
         return;
@@ -1707,7 +1870,7 @@ function renderAnalysis() {
     currentBill.items.forEach(function (item, index) {
         const issues = analyzeItem(item, index);
 
-        if (issues.length === 0) {
+        if (item.reviewed || issues.length === 0) {
             normal++;
 
             return;
@@ -1724,7 +1887,16 @@ function renderAnalysis() {
 
             const div = document.createElement("div");
 
-            div.className = "analysis-item " + issue.type;
+            div.className =
+                "analysis-item " +
+                issue.type +
+                (item.reviewed ? " reviewed" : "");
+
+            div.dataset.itemIndex = index;
+            div.dataset.issueType = issue.type;
+
+            div.setAttribute("role", "button");
+            div.setAttribute("tabindex", "0");
 
             div.innerHTML = `
 
@@ -1759,6 +1931,16 @@ function renderAnalysis() {
                             </p>
 
                         </div>
+
+                        ${
+                            item.reviewed
+                                ? `
+                            <span class="analysis-reviewed">
+                                Reviewed
+                            </span>
+                        `
+                                : ""
+                        }
 
 
                         <div
@@ -1832,6 +2014,68 @@ function renderAnalysis() {
 
         `;
     }
+}
+
+if (analysisList) {
+    analysisList.addEventListener("click", function (event) {
+        const analysisItem = event.target.closest(".analysis-item");
+
+        if (!analysisItem) {
+            return;
+        }
+
+        const index = Number(analysisItem.dataset.itemIndex);
+
+        if (!Number.isInteger(index)) {
+            return;
+        }
+
+        const issues = analyzeItem(currentBill.items[index], index);
+
+        const issue = issues.find(function (item) {
+            return item.type === analysisItem.dataset.issueType;
+        });
+
+        if (!issue) {
+            return;
+        }
+
+        openReviewerModal(index, issue);
+    });
+}
+
+if (analysisList) {
+    analysisList.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter" && event.key !== " ") {
+            return;
+        }
+
+        const analysisItem = event.target.closest(".analysis-item");
+
+        if (!analysisItem) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const index = Number(analysisItem.dataset.itemIndex);
+
+        if (!Number.isInteger(index)) {
+            return;
+        }
+
+        const issues = analyzeItem(currentBill.items[index], index);
+
+        const issue = issues.find(function (item) {
+            return item.type === analysisItem.dataset.issueType;
+        });
+
+        if (!issue) {
+            return;
+        }
+
+        openReviewerModal(index, issue);
+    });
 }
 
 function renderDashboard() {
@@ -2736,6 +2980,12 @@ document.addEventListener("keydown", function (event) {
 document.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
         closeEditItemModal();
+    }
+});
+
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+        closeReviewerModal();
     }
 });
 
