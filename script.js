@@ -489,6 +489,10 @@ const newBillBtn = document.getElementById("newBillBtn");
 const clearItemsBtn = document.getElementById("clearItemsBtn");
 
 const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+const clearHistoryModal = document.getElementById("clearHistoryModal");
+const confirmClearHistoryBtn = document.getElementById(
+    "confirmClearHistoryBtn",
+);
 
 const csvBtn = document.getElementById("csvBtn");
 
@@ -2421,6 +2425,32 @@ if (historyList) {
     });
 }
 
+function openClearHistoryModal() {
+    if (!clearHistoryModal) {
+        return;
+    }
+
+    clearHistoryModal.classList.add("open");
+    clearHistoryModal.setAttribute("aria-hidden", "false");
+}
+
+function closeClearHistoryModal() {
+    if (!clearHistoryModal) {
+        return;
+    }
+
+    clearHistoryModal.classList.remove("open");
+    clearHistoryModal.setAttribute("aria-hidden", "true");
+}
+
+if (clearHistoryModal) {
+    clearHistoryModal
+        .querySelectorAll("[data-confirm-close]")
+        .forEach(function (button) {
+            button.addEventListener("click", closeClearHistoryModal);
+        });
+}
+
 if (clearHistoryBtn) {
     clearHistoryBtn.addEventListener("click", function () {
         const bills = getBills();
@@ -2431,14 +2461,12 @@ if (clearHistoryBtn) {
             return;
         }
 
-        const confirmed = confirm(
-            "Delete ALL saved bills? This cannot be undone.",
-        );
+        openClearHistoryModal();
+    });
+}
 
-        if (!confirmed) {
-            return;
-        }
-
+if (confirmClearHistoryBtn) {
+    confirmClearHistoryBtn.addEventListener("click", function () {
         localStorage.removeItem(STORAGE_KEY);
 
         currentBillId = null;
@@ -2464,6 +2492,8 @@ if (clearHistoryBtn) {
         loadCurrentBillIntoForm();
 
         updateEverything();
+
+        closeClearHistoryModal();
 
         showToast("Bill history cleared.");
     });
