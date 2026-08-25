@@ -1845,3 +1845,352 @@ td:first-child {
     padding: 5px;
     color: var(--text-muted);
 }
+
+/* ================= CUSTOM IPHONE DATE PICKER ================= */
+
+.custom-date-control {
+    position: relative;
+}
+
+.date-input-native {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    min-height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.date-picker-trigger {
+    width: 100%;
+    min-height: 45px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 10px 13px;
+
+    background: var(--surface-2);
+    color: var(--text);
+
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+
+    text-align: left;
+    cursor: pointer;
+
+    transition:
+        border-color 160ms ease,
+        background 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.date-picker-trigger:hover {
+    background: var(--surface-3);
+    border-color: #475057;
+}
+
+.date-picker-trigger:focus-visible {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(101, 211, 145, 0.16);
+}
+
+.date-picker-calendar {
+    position: relative;
+
+    width: 18px;
+    height: 17px;
+    flex: 0 0 18px;
+
+    border: 1.5px solid var(--text-soft);
+    border-radius: 4px;
+}
+
+.date-picker-calendar::before {
+    content: "";
+
+    position: absolute;
+    top: 4px;
+    left: -1.5px;
+    right: -1.5px;
+
+    border-top: 1.5px solid var(--text-soft);
+}
+
+.date-picker-calendar::after {
+    content: "";
+
+    position: absolute;
+    top: -4px;
+    left: 4px;
+
+    width: 6px;
+    height: 5px;
+
+    border-left: 1.5px solid var(--text-soft);
+    border-right: 1.5px solid var(--text-soft);
+}
+
+.date-picker {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+
+    padding: 16px;
+
+    background: rgba(0, 0, 0, 0.58);
+}
+
+.date-picker.open {
+    display: flex;
+    animation: datePickerFadeIn 160ms ease;
+}
+
+body.date-picker-is-open {
+    overflow: hidden;
+}
+
+.date-picker-backdrop {
+    position: absolute;
+    inset: 0;
+}
+
+.date-picker-sheet {
+    position: relative;
+    z-index: 1;
+
+    width: min(100%, 480px);
+    overflow: hidden;
+
+    background: #171b20;
+    color: var(--text);
+
+    border: 1px solid #343b43;
+    border-radius: 24px;
+
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+
+    animation: datePickerSheetIn 220ms ease;
+}
+
+.date-picker-toolbar {
+    min-height: 58px;
+
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+
+    padding: 10px 17px;
+
+    border-bottom: 1px solid #2a3038;
+}
+
+.date-picker-toolbar strong {
+    color: var(--text);
+
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.date-picker-action {
+    padding: 7px 0;
+
+    border: 0;
+    background: transparent;
+    color: var(--green);
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.date-picker-action.done {
+    justify-self: end;
+    font-weight: 700;
+}
+
+.date-picker-action:hover {
+    color: #9aebb8;
+}
+
+.date-picker-preview {
+    padding: 18px 20px 8px;
+
+    color: var(--text);
+
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-align: center;
+}
+
+.date-picker-wheels {
+    position: relative;
+
+    height: 210px;
+
+    display: grid;
+    grid-template-columns: 1.35fr 0.8fr 1fr;
+    gap: 2px;
+
+    padding: 0 18px;
+    overflow: hidden;
+}
+
+.date-picker-wheels::before {
+    content: "";
+
+    position: absolute;
+    z-index: 2;
+    top: 84px;
+    left: 18px;
+    right: 18px;
+
+    height: 42px;
+
+    border-top: 1px solid rgba(101, 211, 145, 0.28);
+    border-bottom: 1px solid rgba(101, 211, 145, 0.28);
+
+    background: rgba(101, 211, 145, 0.07);
+    pointer-events: none;
+}
+
+.date-picker-wheels::after {
+    content: "";
+
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+
+    background: linear-gradient(
+        to bottom,
+        #171b20 0%,
+        rgba(23, 27, 32, 0.92) 10%,
+        transparent 31%,
+        transparent 69%,
+        rgba(23, 27, 32, 0.92) 90%,
+        #171b20 100%
+    );
+
+    pointer-events: none;
+}
+
+.date-wheel {
+    position: relative;
+    z-index: 1;
+
+    height: 210px;
+    overflow-y: auto;
+
+    padding: 84px 0;
+
+    scroll-snap-type: y mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.date-wheel::-webkit-scrollbar {
+    display: none;
+}
+
+.date-wheel:focus-visible {
+    outline: 1px solid rgba(101, 211, 145, 0.6);
+    outline-offset: -2px;
+}
+
+.date-wheel-option {
+    width: 100%;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 4px;
+
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 42px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    scroll-snap-align: center;
+    cursor: pointer;
+
+    transition:
+        color 120ms ease,
+        transform 120ms ease;
+}
+
+.date-wheel-option.selected {
+    color: var(--text);
+    font-weight: 700;
+    transform: scale(1.02);
+}
+
+.date-wheel-option:hover {
+    color: var(--text);
+}
+
+.date-picker-help {
+    padding: 5px 20px 17px;
+
+    color: var(--text-muted);
+    font-size: 11px;
+    text-align: center;
+}
+
+@keyframes datePickerFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes datePickerSheetIn {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 600px) {
+    .date-picker {
+        padding: 0;
+    }
+
+    .date-picker-sheet {
+        width: 100%;
+
+        border-right: 0;
+        border-bottom: 0;
+        border-radius: 24px 24px 0 0;
+
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
