@@ -667,6 +667,46 @@
             <p>&copy; All rights reserved. No Clue</p>
         </div>
 
+        <div class="confirm-modal" id="clearHistoryModal" aria-hidden="true">
+            <div class="confirm-modal-backdrop" data-confirm-close></div>
+
+            <div
+                class="confirm-modal-sheet"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="clearHistoryTitle"
+            >
+                <div class="confirm-modal-icon">!</div>
+
+                <div class="confirm-modal-content">
+                    <h3 id="clearHistoryTitle">Delete all saved bills?</h3>
+
+                    <p>
+                        This will permanently delete all saved bills from this
+                        device. This action cannot be undone.
+                    </p>
+                </div>
+
+                <div class="confirm-modal-actions">
+                    <button
+                        type="button"
+                        class="secondary-btn"
+                        data-confirm-close
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        class="primary-btn danger-btn"
+                        id="confirmClearHistoryBtn"
+                    >
+                        Delete all
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <script src="script.js"></script>
     </body>
 </html>
