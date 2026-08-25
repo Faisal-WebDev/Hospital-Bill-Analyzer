@@ -707,6 +707,71 @@
             </div>
         </div>
 
+        <!-- ================= REVIEW ITEM MODAL ================= -->
+
+        <div class="review-modal" id="reviewModal" aria-hidden="true">
+            <div class="review-modal-overlay" data-review-close></div>
+
+            <div
+                class="review-modal-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="reviewModalTitle"
+            >
+                <button
+                    type="button"
+                    class="review-modal-close"
+                    id="reviewModalClose"
+                    aria-label="Close review"
+                >
+                    ×
+                </button>
+
+                <div class="review-modal-icon">!</div>
+
+                <div class="review-modal-content">
+                    <span class="review-modal-label">BILL ITEM REVIEW</span>
+
+                    <h3 id="reviewModalTitle">Review this charge</h3>
+
+                    <p id="reviewModalDescription">
+                        Review this charge against the original bill and confirm
+                        that the entry appears as expected.
+                    </p>
+
+                    <div class="review-modal-item">
+                        <span>Item</span>
+                        <strong id="reviewModalItemName">—</strong>
+                    </div>
+
+                    <div class="review-modal-reason">
+                        <span>Why it was flagged</span>
+                        <p id="reviewModalReason">
+                            This item may deserve a second look.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="review-modal-actions">
+                    <button
+                        type="button"
+                        class="secondary-btn"
+                        id="reviewModalCancel"
+                    >
+                        Not yet
+                    </button>
+
+                    <button
+                        type="button"
+                        class="primary-btn"
+                        id="markReviewedBtn"
+                    >
+                        Mark as reviewed
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <script src="script.js"></script>
     </body>
 </html>
