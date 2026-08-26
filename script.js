@@ -2867,13 +2867,748 @@ if (csvBtn) {
 
 if (printBtn) {
     printBtn.addEventListener("click", function () {
-        if (currentBill.items.length === 0) {
+        if (!currentBill.items || currentBill.items.length === 0) {
             showToast("Add items before creating a report.");
-
             return;
         }
 
-        window.print();
+        updateEverything();
+
+        const report = document.getElementById("printArea");
+
+        if (!report) {
+            showToast("Could not prepare the report for printing.");
+            return;
+        }
+
+        const printWindow = window.open("", "_blank", "width=900,height=1000");
+
+        if (!printWindow) {
+            showToast("Please allow pop-ups to print the report.");
+            return;
+        }
+
+        const reportHTML = report.outerHTML;
+
+        const styleURL = new URL("style.css", document.baseURI).href;
+
+        printWindow.document.open();
+
+        printWindow.document.write(`
+<!doctype html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Hospital Bill Report</title>
+
+    <!-- USE THE SAME CSS AS THE WEBSITE -->
+    <link
+        rel="stylesheet"
+        href="${styleURL}"
+    >
+
+    <style>
+
+        /* =========================================
+           PRINT PAGE SETUP
+        ========================================= */
+
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        html {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            background: #ffffff !important;
+        }
+
+        body {
+            margin: 0 !important;
+            padding: 10mm !important;
+
+            width: 100% !important;
+            min-width: 0 !important;
+
+            background: #ffffff !important;
+
+            color: #172027 !important;
+
+            overflow: visible !important;
+
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+
+        /* =========================================
+           ONLY REPORT IS PRINTED
+        ========================================= */
+
+        #printArea {
+            display: block !important;
+
+            width: 190mm !important;
+            max-width: 190mm !important;
+            min-width: 0 !important;
+
+            margin: 0 auto !important;
+            padding: 0 !important;
+
+            background: #ffffff !important;
+
+            color: #172027 !important;
+
+            border: 1px solid #dfe5e8 !important;
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            overflow: visible !important;
+
+            box-sizing: border-box !important;
+
+            transform: none !important;
+        }
+
+
+        /* =========================================
+           BRAND HEADER
+        ========================================= */
+
+        #printArea .report-brand {
+            display: grid !important;
+
+            grid-template-columns:
+                48px
+                minmax(0, 1fr)
+                auto !important;
+
+            align-items: center !important;
+
+            gap: 12px !important;
+
+            width: 100% !important;
+
+            padding: 16px 18px !important;
+
+            box-sizing: border-box !important;
+
+            border-bottom: 1px solid #e2e7e9 !important;
+
+            background: #ffffff !important;
+
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+        }
+
+
+        #printArea .report-logo {
+            width: 42px !important;
+            height: 42px !important;
+
+            min-width: 42px !important;
+            min-height: 42px !important;
+
+            display: flex !important;
+
+            align-items: center !important;
+            justify-content: center !important;
+
+            border-radius: 10px !important;
+
+            background: #11191f !important;
+            color: #ffffff !important;
+
+            font-size: 15px !important;
+            font-weight: 800 !important;
+
+            box-sizing: border-box !important;
+        }
+
+
+        #printArea .report-brand-text {
+            min-width: 0 !important;
+        }
+
+
+        #printArea .report-brand-text h1 {
+            margin: 0 !important;
+
+            font-size: 17px !important;
+            line-height: 1.2 !important;
+
+            color: #172027 !important;
+
+            white-space: nowrap !important;
+        }
+
+
+        #printArea .report-brand-text p {
+            margin: 3px 0 0 !important;
+
+            font-size: 9px !important;
+
+            color: #7b858b !important;
+        }
+
+
+        #printArea .report-title {
+            text-align: right !important;
+
+            white-space: nowrap !important;
+        }
+
+
+        #printArea .report-title span {
+            display: block !important;
+
+            font-size: 9px !important;
+
+            font-weight: 800 !important;
+
+            letter-spacing: 1.2px !important;
+
+            color: #11191f !important;
+        }
+
+
+        #printArea .report-title small {
+            display: block !important;
+
+            margin-top: 3px !important;
+
+            font-size: 7px !important;
+
+            color: #89939a !important;
+        }
+
+
+        /* =========================================
+           HOSPITAL
+        ========================================= */
+
+        #printArea .report-hospital-block {
+            width: 100% !important;
+
+            padding: 13px 18px 12px !important;
+
+            box-sizing: border-box !important;
+
+            border-bottom: 1px solid #e7ebed !important;
+
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+        }
+
+
+        #printArea .report-section-label {
+            display: block !important;
+
+            margin-bottom: 4px !important;
+
+            font-size: 7px !important;
+
+            font-weight: 800 !important;
+
+            letter-spacing: 1.1px !important;
+
+            color: #8a949a !important;
+        }
+
+
+        #printArea .report-hospital-block h2 {
+            margin: 0 !important;
+
+            font-size: 16px !important;
+
+            line-height: 1.25 !important;
+
+            color: #182229 !important;
+        }
+
+
+        /* =========================================
+           PATIENT / BILL / DATE
+           FORCE ONE ROW
+        ========================================= */
+
+        #printArea .report-info-grid {
+            display: grid !important;
+
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr)) !important;
+
+            gap: 8px !important;
+
+            width: 100% !important;
+
+            padding: 12px 18px !important;
+
+            box-sizing: border-box !important;
+
+            border-bottom: 1px solid #e7ebed !important;
+
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+        }
+
+
+        #printArea .report-info-card {
+            display: block !important;
+
+            width: 100% !important;
+
+            min-width: 0 !important;
+
+            padding: 9px 10px !important;
+
+            box-sizing: border-box !important;
+
+            border: 1px solid #e3e8ea !important;
+
+            border-radius: 7px !important;
+
+            background: #fbfcfc !important;
+
+            overflow: hidden !important;
+        }
+
+
+        #printArea .report-info-card span {
+            display: block !important;
+
+            margin-bottom: 4px !important;
+
+            font-size: 7px !important;
+
+            font-weight: 800 !important;
+
+            letter-spacing: .8px !important;
+
+            text-transform: uppercase !important;
+
+            color: #8a949a !important;
+        }
+
+
+        #printArea .report-info-card strong {
+            display: block !important;
+
+            width: 100% !important;
+
+            font-size: 10px !important;
+
+            color: #1d292f !important;
+
+            white-space: nowrap !important;
+
+            overflow: hidden !important;
+
+            text-overflow: ellipsis !important;
+        }
+
+
+        /* =========================================
+           ITEMS SECTION
+        ========================================= */
+
+        #printArea .report-items-section {
+            width: 100% !important;
+
+            padding: 14px 18px 0 !important;
+
+            box-sizing: border-box !important;
+
+            break-inside: auto !important;
+        }
+
+
+        #printArea .report-items-heading {
+            margin-bottom: 7px !important;
+        }
+
+
+        #printArea .report-items-heading h3 {
+            margin: 0 !important;
+
+            font-size: 12px !important;
+
+            color: #172027 !important;
+        }
+
+
+        #printArea .report-table-wrapper {
+            width: 100% !important;
+
+            max-width: 100% !important;
+
+            overflow: visible !important;
+
+            box-sizing: border-box !important;
+        }
+
+
+        /* =========================================
+           TABLE
+        ========================================= */
+
+        #printArea .report-table {
+            width: 100% !important;
+
+            max-width: 100% !important;
+
+            min-width: 0 !important;
+
+            table-layout: fixed !important;
+
+            border-collapse: collapse !important;
+
+            font-size: 8px !important;
+
+            box-sizing: border-box !important;
+        }
+
+
+        #printArea .report-table th,
+        #printArea .report-table td {
+            box-sizing: border-box !important;
+
+            overflow: hidden !important;
+
+            max-width: 0 !important;
+        }
+
+
+        #printArea .report-table thead {
+            display: table-header-group !important;
+        }
+
+
+        #printArea .report-table thead th {
+            padding: 6px 5px !important;
+
+            background: #f4f7f8 !important;
+
+            border-top: 1px solid #e0e6e8 !important;
+
+            border-bottom: 1px solid #dfe5e7 !important;
+
+            color: #667178 !important;
+
+            font-size: 6.5px !important;
+
+            font-weight: 800 !important;
+
+            letter-spacing: .4px !important;
+
+            text-transform: uppercase !important;
+
+            text-align: left !important;
+
+            white-space: nowrap !important;
+        }
+
+
+        #printArea .report-table tbody td {
+            padding: 6px 5px !important;
+
+            border-bottom: 1px solid #edf0f1 !important;
+
+            color: #273239 !important;
+
+            font-size: 8px !important;
+
+            vertical-align: middle !important;
+
+            line-height: 1.2 !important;
+
+            white-space: nowrap !important;
+        }
+
+
+        #printArea .report-table tbody tr {
+            break-inside: avoid !important;
+
+            page-break-inside: avoid !important;
+        }
+
+
+        /* EXACT COLUMN WIDTHS */
+
+        #printArea .report-table th:nth-child(1),
+        #printArea .report-table td:nth-child(1) {
+            width: 6% !important;
+
+            text-align: center !important;
+        }
+
+
+        #printArea .report-table th:nth-child(2),
+        #printArea .report-table td:nth-child(2) {
+            width: 29% !important;
+
+            text-align: left !important;
+        }
+
+
+        #printArea .report-table th:nth-child(3),
+        #printArea .report-table td:nth-child(3) {
+            width: 22% !important;
+
+            text-align: left !important;
+        }
+
+
+        #printArea .report-table th:nth-child(4),
+        #printArea .report-table td:nth-child(4) {
+            width: 9% !important;
+
+            text-align: center !important;
+        }
+
+
+        #printArea .report-table th:nth-child(5),
+        #printArea .report-table td:nth-child(5) {
+            width: 17% !important;
+
+            text-align: right !important;
+        }
+
+
+        #printArea .report-table th:nth-child(6),
+        #printArea .report-table td:nth-child(6) {
+            width: 17% !important;
+
+            text-align: right !important;
+        }
+
+
+        #printArea .report-table td:nth-child(5),
+        #printArea .report-table td:nth-child(6) {
+            white-space: nowrap !important;
+        }
+
+
+        #printArea .report-table td:nth-child(6) {
+            font-weight: 800 !important;
+        }
+
+
+        /* =========================================
+           TOTAL
+        ========================================= */
+
+        #printArea .report-total-box {
+            display: flex !important;
+
+            align-items: center !important;
+
+            justify-content: space-between !important;
+
+            gap: 10px !important;
+
+            width: auto !important;
+
+            margin: 12px 18px 0 !important;
+
+            padding: 10px 12px !important;
+
+            box-sizing: border-box !important;
+
+            border-radius: 7px !important;
+
+            background: #f5f7f8 !important;
+
+            border: 1px solid #e0e5e7 !important;
+
+            break-inside: avoid !important;
+
+            page-break-inside: avoid !important;
+        }
+
+
+        #printArea .report-total-box span {
+            display: block !important;
+
+            font-size: 7px !important;
+
+            font-weight: 800 !important;
+
+            letter-spacing: .9px !important;
+
+            color: #68737a !important;
+        }
+
+
+        #printArea .report-total-box small {
+            display: block !important;
+
+            margin-top: 2px !important;
+
+            font-size: 7px !important;
+
+            color: #8b959b !important;
+        }
+
+
+        #printArea .report-total-box strong {
+            font-size: 15px !important;
+
+            color: #11191f !important;
+
+            white-space: nowrap !important;
+        }
+
+
+        /* =========================================
+           FOOTER
+        ========================================= */
+
+        #printArea .report-footer {
+            display: flex !important;
+
+            align-items: flex-end !important;
+
+            justify-content: space-between !important;
+
+            gap: 10px !important;
+
+            width: 100% !important;
+
+            margin-top: 12px !important;
+
+            padding: 10px 18px !important;
+
+            box-sizing: border-box !important;
+
+            border-top: 1px solid #e2e7e9 !important;
+
+            background: #fafbfb !important;
+
+            break-inside: avoid !important;
+
+            page-break-inside: avoid !important;
+        }
+
+
+        #printArea .report-footer strong {
+            display: block !important;
+
+            font-size: 7px !important;
+
+            color: #273239 !important;
+        }
+
+
+        #printArea .report-footer span {
+            display: block !important;
+
+            margin-top: 2px !important;
+
+            font-size: 6px !important;
+
+            color: #89939a !important;
+        }
+
+
+        #printArea .report-footer-right {
+            text-align: right !important;
+        }
+
+
+        /* =========================================
+           EMPTY STATE
+        ========================================= */
+
+        #printArea .report-empty {
+            margin: 8px 0 !important;
+        }
+
+
+        /* =========================================
+           PRINT SAFETY
+        ========================================= */
+
+        @media print {
+
+            html,
+            body {
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            body {
+                padding: 10mm !important;
+            }
+
+            #printArea {
+                width: 190mm !important;
+                max-width: 190mm !important;
+                margin: 0 auto !important;
+
+                break-after: avoid !important;
+                page-break-after: avoid !important;
+
+                break-before: avoid !important;
+                page-break-before: avoid !important;
+            }
+
+            .report-brand,
+            .report-hospital-block,
+            .report-info-grid,
+            .report-total-box,
+            .report-footer {
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+            }
+
+            .report-table tbody tr {
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    ${reportHTML}
+
+    <script>
+
+        window.addEventListener("load", function () {
+
+            setTimeout(function () {
+
+                window.focus();
+
+                window.print();
+
+            }, 400);
+
+        });
+
+    <\/script>
+
+</body>
+
+</html>
+        `);
+
+        printWindow.document.close();
     });
 }
 
