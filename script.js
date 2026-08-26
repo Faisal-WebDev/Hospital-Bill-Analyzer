@@ -494,6 +494,10 @@ const confirmClearHistoryBtn = document.getElementById(
     "confirmClearHistoryBtn",
 );
 
+const clearItemsModal = document.getElementById("clearItemsModal");
+
+const confirmClearItemsBtn = document.getElementById("confirmClearItemsBtn");
+
 const csvBtn = document.getElementById("csvBtn");
 
 const printBtn = document.getElementById("printBtn");
@@ -1221,19 +1225,7 @@ if (clearItemsBtn) {
             return;
         }
 
-        const confirmed = confirm("Clear all items from this bill?");
-
-        if (!confirmed) {
-            return;
-        }
-
-        currentBill.items = [];
-
-        saveCurrentBill();
-
-        updateEverything();
-
-        showToast("All items cleared.");
+        openClearItemsModal();
     });
 }
 
@@ -2695,6 +2687,14 @@ if (clearHistoryModal) {
         });
 }
 
+if (clearItemsModal) {
+    clearItemsModal
+        .querySelectorAll("[data-confirm-close]")
+        .forEach(function (button) {
+            button.addEventListener("click", closeClearItemsModal);
+        });
+}
+
 if (clearHistoryBtn) {
     clearHistoryBtn.addEventListener("click", function () {
         const bills = getBills();
@@ -2741,6 +2741,54 @@ if (confirmClearHistoryBtn) {
 
         showToast("Bill history cleared.");
     });
+}
+
+if (confirmClearItemsBtn) {
+    confirmClearItemsBtn.addEventListener("click", function () {
+        currentBill.items = [];
+
+        saveCurrentBill();
+
+        updateEverything();
+
+        closeClearItemsModal();
+
+        showToast("All items cleared.");
+    });
+}
+
+if (confirmClearItemsBtn) {
+    confirmClearItemsBtn.addEventListener("click", function () {
+        currentBill.items = [];
+
+        saveCurrentBill();
+
+        updateEverything();
+
+        closeClearItemsModal();
+
+        showToast("All items cleared.");
+    });
+}
+
+function openClearItemsModal() {
+    if (!clearItemsModal) {
+        return;
+    }
+
+    clearItemsModal.classList.add("open");
+
+    clearItemsModal.setAttribute("aria-hidden", "false");
+}
+
+function closeClearItemsModal() {
+    if (!clearItemsModal) {
+        return;
+    }
+
+    clearItemsModal.classList.remove("open");
+
+    clearItemsModal.setAttribute("aria-hidden", "true");
 }
 
 if (newBillBtn) {
@@ -3715,6 +3763,12 @@ document.addEventListener("keydown", function (event) {
 document.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
         closeEditItemModal();
+    }
+});
+
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+        closeClearItemsModal();
     }
 });
 
