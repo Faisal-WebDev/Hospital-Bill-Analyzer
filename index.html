@@ -529,74 +529,143 @@
 
                         <div>
                             <h2>Report</h2>
-
                             <p>Review and export the current bill.</p>
                         </div>
                     </div>
 
                     <div class="report-actions">
-                        <button class="secondary-btn" id="csvBtn">
+                        <button type="button" class="secondary-btn" id="csvBtn">
                             Export CSV
                         </button>
 
-                        <button class="primary-btn" id="printBtn">
+                        <button type="button" class="primary-btn" id="printBtn">
                             Print / Save PDF
                         </button>
                     </div>
                 </div>
 
                 <div class="panel report-panel" id="printArea">
-                    <div class="report-header">
+                    <!-- REPORT HEADER -->
+                    <div class="report-brand">
+                        <div class="report-logo">
+                            <span>HB</span>
+                        </div>
+
+                        <div class="report-brand-text">
+                            <h1>Hospital Bill Analyzer</h1>
+                            <p>Smart Medical Bill Analysis</p>
+                        </div>
+
+                        <div class="report-title">
+                            <span>BILL REPORT</span>
+                            <small>Official Bill Summary</small>
+                        </div>
+                    </div>
+
+                    <!-- HOSPITAL -->
+                    <div class="report-hospital-block">
+                        <span class="report-section-label">
+                            HOSPITAL / CLINIC
+                        </span>
+
+                        <h2 id="reportHospital">Hospital / Clinic</h2>
+                    </div>
+
+                    <!-- BILL INFORMATION -->
+                    <div class="report-info-grid">
+                        <div class="report-info-card">
+                            <span>Patient</span>
+
+                            <strong id="reportPatient">
+                                Patient / Customer
+                            </strong>
+                        </div>
+
+                        <div class="report-info-card">
+                            <span>Bill Number</span>
+
+                            <strong id="reportBillNumber"> — </strong>
+                        </div>
+
+                        <div class="report-info-card">
+                            <span>Bill Date</span>
+
+                            <strong id="reportDate"> — </strong>
+                        </div>
+                    </div>
+
+                    <!-- BILL ITEMS -->
+                    <div class="report-items-section">
+                        <div class="report-items-heading">
+                            <div>
+                                <span class="report-section-label">
+                                    BILL ITEMS
+                                </span>
+
+                                <h3>Detailed Charges</h3>
+                            </div>
+                        </div>
+
+                        <div class="report-table-wrapper">
+                            <table class="report-table">
+                                <thead>
+                                    <tr>
+                                        <th class="col-number">#</th>
+
+                                        <th>Description</th>
+
+                                        <th>Category</th>
+
+                                        <th class="col-qty">Qty.</th>
+
+                                        <th class="col-price">Unit Price</th>
+
+                                        <th class="col-total">Total</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="reportTableBody"></tbody>
+                            </table>
+
+                            <div
+                                id="reportEmpty"
+                                class="empty-state report-empty"
+                            >
+                                <div class="empty-icon">▤</div>
+
+                                <h4>No report available</h4>
+
+                                <p>Add bill items to generate the report.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TOTAL -->
+                    <div class="report-total-box">
                         <div>
-                            <span class="report-label"> BILLING REPORT </span>
+                            <span> TOTAL AMOUNT </span>
 
-                            <h2 id="reportHospital">Hospital / Clinic</h2>
-
-                            <p id="reportPatient">Patient / Customer</p>
+                            <small> Final bill amount </small>
                         </div>
-
-                        <div class="report-meta">
-                            <div>
-                                <span>Bill number</span>
-                                <strong id="reportBillNumber">—</strong>
-                            </div>
-
-                            <div>
-                                <span>Date</span>
-                                <strong id="reportDate">—</strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="report-table-wrapper">
-                        <table class="report-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Description</th>
-                                    <th>Category</th>
-                                    <th>Qty.</th>
-                                    <th>Unit price</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-
-                            <tbody id="reportTableBody"></tbody>
-                        </table>
-
-                        <div id="reportEmpty" class="empty-state report-empty">
-                            <div class="empty-icon">▤</div>
-
-                            <h4>No report available</h4>
-
-                            <p>Add bill items to generate the report.</p>
-                        </div>
-                    </div>
-
-                    <div class="report-total">
-                        <span>Total amount</span>
 
                         <strong id="reportTotal"> Rs. 0.00 </strong>
+                    </div>
+
+                    <!-- FOOTER -->
+                    <div class="report-footer">
+                        <div>
+                            <strong> Hospital Bill Analyzer </strong>
+
+                            <span> Smart Medical Bill Analysis </span>
+                        </div>
+
+                        <div class="report-footer-right">
+                            <span> Generated electronically </span>
+
+                            <span>
+                                This report is for informational purposes.
+                            </span>
+                        </div>
                     </div>
                 </div>
             </section>
