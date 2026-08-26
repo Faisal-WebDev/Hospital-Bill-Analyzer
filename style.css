@@ -3158,3 +3158,46 @@ body.reviewer-modal-open {
         page-break-inside: avoid !important;
     }
 }
+
+.back-to-top {
+    position: fixed;
+
+    border-radius: 100%;
+
+    right: 24px;
+    bottom: 24px;
+
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #444;
+    background: #111;
+    color: #fff;
+
+    font-size: 20px;
+
+    cursor: pointer;
+
+    opacity: 0;
+    visibility: hidden;
+
+    transform: translateY(10px);
+
+    transition: all 0.2s ease;
+}
+
+.back-to-top.show {
+    opacity: 1;
+    visibility: visible;
+
+    transform: translateY(0);
+}
+
+.back-to-top:hover {
+    border-color: var(--green);
+    color: var(--green);
+}
