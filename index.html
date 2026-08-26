@@ -776,6 +776,46 @@
             </div>
         </div>
 
+        <div class="confirm-modal" id="clearItemsModal" aria-hidden="true">
+            <div class="confirm-modal-backdrop" data-clear-items-close></div>
+
+            <div
+                class="confirm-modal-sheet"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="clearItemsTitle"
+            >
+                <div class="confirm-modal-icon">!</div>
+
+                <div class="confirm-modal-content">
+                    <h3 id="clearItemsTitle">Clear all bill items?</h3>
+
+                    <p>
+                        This will remove all items from the current bill. This
+                        action cannot be undone.
+                    </p>
+                </div>
+
+                <div class="confirm-modal-actions">
+                    <button
+                        type="button"
+                        class="secondary-btn"
+                        data-clear-items-close
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        class="primary-btn danger-btn"
+                        id="confirmClearItemsBtn"
+                    >
+                        Clear all
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <script src="script.js"></script>
     </body>
 </html>
